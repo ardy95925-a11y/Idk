@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE VOID SPEAKS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Special+Elite&family=Londrina+Solid:wght@900&family=Rubik+Glitch&family=Butcherman&display=swap');
+
+  :root {
+    --blood: #8b0000;
+    --hellfire: #ff2200;
+    --bile: #9cff00;
+    --void: #0a0a0a;
+    --rot: #3a1a00;
+    --slime: #2aff00;
+    --puke: #c8ff00;
+    --bone: #e8e0d0;
+    --ash: #888;
+    --toxic: #00ff88;
+    --purple-doom: #7700cc;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { background: var(--void); }
+
+  body {
+    background: var(--void);
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: crosshair;
+    font-family: 'Special Elite', monospace;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.3) 2px,
+      rgba(0,0,0,0.3) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* Noise grain */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 998;
+    opacity: 0.12;
+    animation: grain 0.5s steps(1) infinite;
+  }
+
+  @keyframes grain {
+    0%, 100% { transform: translate(0,0); }
+    10% { transform: translate(-2%,-3%); }
+    20% { transform: translate(3%,2%); }
+    30% { transform: translate(-1%,4%); }
+    40% { transform: translate(4%,-1%); }
+    50% { transform: translate(-3%,3%); }
+    60% { transform: translate(2%,-4%); }
+    70% { transform: translate(-4%,1%); }
+    80% { transform: translate(1%,-2%); }
+    90% { transform: translate(-2%,4%); }
+  }
+
+  #header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    text-align: center;
+    padding: 12px;
+    background: rgba(0,0,0,0.95);
+    border-bottom: 2px solid var(--blood);
+    box-shadow: 0 0 30px var(--blood);
+  }
+
+  #header h1 {
+    font-family: 'Butcherman', cursive;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    color: var(--hellfire);
+    text-shadow: 0 0 20px var(--blood), 0 0 40px var(--blood);
+    letter-spacing: 0.1em;
+    animation: flicker 4s infinite;
+  }
+
+  @keyframes flicker {
+    0%, 95%, 100% { opacity: 1; }
+    96% { opacity: 0.4; }
+    97% { opacity: 1; }
+    98% { opacity: 0.2; }
+    99% { opacity: 0.9; }
+  }
+
+  #header p {
+    font-size: 0.65rem;
+    color: var(--ash);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  #word-field {
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+  }
+
+  .word-chunk {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin-bottom: 8px;
+    animation: chunkIn 0.3s ease-out forwards;
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  @keyframes chunkIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .word {
+    display: inline-block;
+    font-family: inherit;
+    line-height: 1.2;
+    transition: color 0.1s;
+    cursor: default;
+    will-change: transform;
+  }
+
+  .word:hover {
+    animation: jolt 0.15s ease infinite alternate;
+    filter: brightness(1.5);
+  }
+
+  @keyframes jolt {
+    from { transform: skewX(-3deg) scale(1.05); }
+    to   { transform: skewX(3deg) scale(1.08); }
+  }
+
+  /* Word style variants */
+  .style-blood   { color: var(--blood); text-shadow: 0 0 8px var(--blood); }
+  .style-hellfire{ color: var(--hellfire); text-shadow: 0 0 12px var(--hellfire), 0 0 2px #fff; }
+  .style-bile    { color: var(--bile); text-shadow: 0 0 6px var(--bile); }
+  .style-void    { color: #444; }
+  .style-slime   { color: var(--slime); text-shadow: 0 0 8px var(--slime); }
+  .style-puke    { color: var(--puke); text-shadow: 0 0 4px var(--puke); }
+  .style-bone    { color: var(--bone); }
+  .style-toxic   { color: var(--toxic); text-shadow: 0 0 10px var(--toxic); }
+  .style-purple  { color: var(--purple-doom); text-shadow: 0 0 12px var(--purple-doom); }
+  .style-ash     { color: var(--ash); }
+  .style-white   { color: #fff; }
+  .style-dim     { color: #222; }
+  .style-orange  { color: #ff7700; text-shadow: 0 0 8px #ff7700; }
+  .style-pink    { color: #ff00aa; text-shadow: 0 0 8px #ff00aa; }
+  .style-teal    { color: #00ffee; text-shadow: 0 0 8px #00ffee; }
+
+  /* Size variants */
+  .sz-tiny   { font-size: 0.6rem; }
+  .sz-small  { font-size: 0.85rem; }
+  .sz-med    { font-size: 1.1rem; }
+  .sz-large  { font-size: 1.6rem; }
+  .sz-huge   { font-size: 2.4rem; font-family: 'Creepster', cursive; }
+  .sz-titan  { font-size: 4rem; font-family: 'Londrina Solid', sans-serif; font-weight: 900; }
+  .sz-glitch { font-size: 2rem; font-family: 'Rubik Glitch', cursive; }
+
+  /* Occasional special effects */
+  .spin-slow  { display: inline-block; animation: spinSlow 8s linear infinite; }
+  .shake      { animation: shake 0.4s linear infinite; }
+  .glitch-anim { animation: glitchAnim 2s infinite; }
+  .blink      { animation: blinkAnim 1.1s step-start infinite; }
+  .pulse      { animation: pulseAnim 1.5s ease-in-out infinite; }
+
+  @keyframes spinSlow { to { transform: rotate(360deg); } }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-2px) rotate(-0.5deg); }
+    75% { transform: translateX(2px) rotate(0.5deg); }
+  }
+  @keyframes glitchAnim {
+    0%,100% { text-shadow: -2px 0 var(--hellfire), 2px 0 var(--toxic); }
+    25% { text-shadow: 2px 0 var(--blood), -2px 0 var(--bile); clip-path: inset(30% 0 40% 0); transform: translateX(-3px); }
+    50% { text-shadow: -1px 0 var(--purple-doom), 1px 0 var(--hellfire); clip-path: inset(60% 0 10% 0); transform: translateX(3px); }
+    75% { clip-path: none; transform: none; }
+  }
+  @keyframes blinkAnim { 50% { opacity: 0; } }
+  @keyframes pulseAnim {
+    0%,100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.08); opacity: 0.7; }
+  }
+
+  /* Sentinel for infinite scroll detection */
+  #sentinel {
+    height: 1px;
+    width: 100%;
+  }
+
+  /* Ambient bg pulses */
+  .bg-pulse {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.04;
+  }
+  #bg1 { width: 600px; height: 600px; background: var(--blood); top: -100px; left: -100px; animation: bgDrift1 20s ease-in-out infinite; }
+  #bg2 { width: 400px; height: 400px; background: var(--purple-doom); bottom: 0; right: -50px; animation: bgDrift2 15s ease-in-out infinite; }
+  @keyframes bgDrift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(80px,60px)} }
+  @keyframes bgDrift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-60px,-40px)} }
+
+  #word-field { position: relative; z-index: 1; }
+</style>
+</head>
+<body>
+
+<div class="bg-pulse" id="bg1"></div>
+<div class="bg-pulse" id="bg2"></div>
+
+<div id="header">
+  <h1>☠ THE VOID SPEAKS ☠</h1>
+  <p>scroll down · the words never end · 18+ · you were warned</p>
+</div>
+
+<div id="word-field"></div>
+<div id="sentinel"></div>
+
+<script>
+  // ─── THE WORD POOLS ─────────────────────────────────────────
+  const words = [
+    // Diabolical / dark
+    "hellspawn","damnation","abomination","infernal","forsaken","wretched","putrid","vile","festering",
+    "pestilence","malevolent","sinister","nefarious","diabolical","accursed","wicked","malice","blight",
+    "desecrate","profane","blaspheme","defile","corrupt","decayed","rancid","fetid","gangrenous","necrotic",
+    "desecrated","tormented","suffering","anguish","despair","torment","agony","misery","anguished",
+    "grotesque","hideous","revolting","repulsive","disgusting","loathsome","repugnant","obnoxious","offensive",
+    "contemptible","deplorable","despicable","detestable","execrable","odious","heinous","atrocious",
+    "barbaric","savage","brutal","vicious","ferocious","ruthless","merciless","pitiless","heartless",
+    "monstrous","ghastly","horrific","terrifying","nightmarish","apocalyptic","catastrophic","cataclysmic",
+    // Offensive / crude
+    "cesspool","garbage","filth","sewage","excrement","mucus","bile","pus","phlegm","vomit","slime",
+    "scum","vermin","parasite","maggot","leech","rodent","roach","pestilent","infested","crawling",
+    "mangled","mutilated","dismembered","decapitated","eviscerated","disembowelled","gutted","shredded",
+    "obliterated","annihilated","decimated","pulverized","incinerated","vaporized","demolished","destroyed",
+    "chaos","anarchy","mayhem","pandemonium","bedlam","havoc","carnage","massacre","slaughter","bloodbath",
+    // Weird / random dark
+    "scrotum","phallus","rectum","anus","bodily","excrete","flatulence","belch","regurgitate","defecate",
+    "fornicate","copulate","promiscuous","debauchery","depravity","perversion","deviance","degenerate",
+    "bastard","jackass","dipshit","numbskull","buffoon","imbecile","moron","cretin","halfwit","dunce",
+    "schmuck","prick","ass","bitch","damn","hell","crap","shit","piss","bastardize","dumbass",
+    "scumbag","dirtbag","lowlife","scoundrel","miscreant","reprobate","villain","wretch","swine","rat",
+    "verminous","disgusting","revolting","putrefying","decomposing","rotting","festering","suppurating",
+    // Sounds diabolical
+    "malodorous","miasmatic","sepulchral","necromantic","demoniacal","phantasmagoric","eldritch","cthonic",
+    "stygian","abyssal","plutonian","infernal","gehenna","tartarean","erebean","hadean","leviathan",
+    "behemoth","mammon","beelzebub","mephistophelean","luciferian","satanic","demonic","diabolic",
+    "hexed","cursed","jinxed","doomed","damned","condemned","forsaken","banished","exiled","excommunicated",
+    "psychotic","deranged","unhinged","demented","lunatic","maniacal","frenzied","berserk","rabid","feral",
+    "cannibalistic","predatory","feral","primal","savage","animalistic","brutish","bestial","ghoulish",
+    // More random chaos
+    "splooge","queef","taint","gooch","ballsack","nipple","armpit","fungal","athlete","mold","spore",
+    "toxic","radioactive","mutant","abhorrent","aberrant","deviant","abnormal","freakish","grotesque",
+    "cadaverous","emaciated","skeletal","gaunt","haggard","pallid","ashen","deathly","ghostly","spectral",
+    "wraith","banshee","poltergeist","revenant","zombie","undead","lich","ghoul","shade","apparition",
+    "maggotbrain","slimeball","shitstain","dipwad","fuckwit","jackoff","cocksucker","bastardly","twatwaffle",
+    "douchebaggery","asshattery","fuckery","bullshit","horseshit","cockamamie","balderdash","poppycock",
+    "gobbledygook","drivel","hogwash","malarkey","claptrap","rubbish","tripe","twaddle","balderdash",
+    "knobhead","tosser","wanker","bellend","muppet","numpty","pillock","plonker","prat","git","minger",
+    "blithering","bumbling","fumbling","stumbling","mumbling","grumbling","crumbling","tumbling","rumbling",
+    "catastrophically","apocalyptically","horrendously","atrociously","despicably","contemptibly","abhorrently",
+    "putrefaction","decomposition","mortification","necrosis","gangrene","sepsis","infection","infestation",
+    "obliteration","annihilation","decimation","eradication","extermination","liquidation","termination",
+    "degeneracy","debauchery","licentiousness","lewdness","lasciviousness","obscenity","indecency","filthiness",
+    "blasphemy","sacrilege","heresy","apostasy","paganism","heathenism","idolatry","iconoclasm","nihilism",
+    "misanthropy","sociopathy","psychopathy","narcissism","sadism","masochism","nihilism","solipsism",
+    "screaming","shrieking","wailing","howling","screeching","bellowing","roaring","thundering","crashing",
+    "exploding","detonating","erupting","imploding","collapsing","disintegrating","fragmenting","shattering",
+    "cretinous","moronic","idiotic","asinine","brainless","vapid","inane","mindless","senseless","witless",
+    "guttersnipe","ruffian","hooligan","thug","delinquent","miscreant","felon","criminal","deviant","pervert",
+    "muck","grime","sludge","ooze","goop","crud","dreck","dross","filth","sewage","waste","refuse","garbage",
+    "fungus","mildew","mold","rot","decay","putrefaction","corruption","contamination","pollution","toxin",
+    "venom","poison","acid","caustic","corrosive","noxious","virulent","pernicious","deleterious","baleful",
+    // Extra spicy randoms
+    "shrivel","wrinkle","crusty","flaky","scaly","scabby","warty","pimply","boil","pustule","carbuncle",
+    "hemorrhoid","hernia","ulcer","lesion","abscess","cyst","tumor","polyp","growth","nodule","lump",
+    "drool","slobber","drivel","froth","foam","spittle","mucus","snot","booger","earwax","tartar","plaque",
+    "groin","crotch","buttocks","posterior","derriere","backside","hindquarters","rump","posterior","rear",
+    "foulness","grossness","nastiness","dirtiness","uncleanliness","unhygienic","unsanitary","contaminated",
+    "infuriating","maddening","aggravating","exasperating","insufferable","intolerable","unbearable","odious",
+    "catastrophe","disaster","calamity","tragedy","apocalypse","armageddon","doomsday","ragnarok","extinction",
+    // More chaotic good
+    "pungent","acrid","fetid","rank","reeking","stinking","malodorous","noisome","noxious","offensive",
+    "spleen","bowel","intestine","colon","rectum","bladder","kidney","liver","gallbladder","appendix",
+    "hemorrhaging","bleeding","oozing","seeping","leaking","dripping","trickling","flowing","gushing",
+    "grotesquerie","monstrosity","abomination","freak","aberration","anomaly","mutation","deformity",
+    "psychedelic","hallucinogenic","delusional","paranoid","schizophrenic","bipolar","dissociative",
+    "seizure","convulsion","spasm","twitch","tremor","shudder","shiver","quake","quiver","vibrate",
+  ];
+
+  const styles = [
+    "style-blood","style-hellfire","style-bile","style-void","style-slime","style-puke",
+    "style-bone","style-toxic","style-purple","style-ash","style-white","style-dim",
+    "style-orange","style-pink","style-teal"
+  ];
+
+  const sizes = [
+    "sz-tiny","sz-tiny","sz-small","sz-small","sz-small","sz-med","sz-med","sz-med","sz-med",
+    "sz-large","sz-large","sz-huge","sz-glitch","sz-titan"
+  ];
+
+  const effects = [null,null,null,null,null,null,null,"spin-slow","shake","glitch-anim","blink","pulse"];
+
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  const field = document.getElementById('word-field');
+
+  // Mutate / combine words sometimes
+  function getWord() {
+    const r = Math.random();
+    if (r < 0.08) {
+      // Portmanteau of two
+      const w1 = pick(words); const w2 = pick(words);
+      return w1.slice(0, Math.ceil(w1.length * 0.55)) + w2.slice(Math.floor(w2.length * 0.4));
+    } else if (r < 0.14) {
+      // ALL CAPS
+      return pick(words).toUpperCase();
+    } else if (r < 0.18) {
+      // Repeat-stutter
+      const w = pick(words);
+      return w.slice(0,3) + '-' + w;
+    }
+    return pick(words);
+  }
+
+  let totalWords = 0;
+
+  function addChunk() {
+    const chunkSize = 40 + Math.floor(Math.random() * 60); // 40–100 words per chunk
+    const chunk = document.createElement('div');
+    chunk.className = 'word-chunk';
+
+    for (let i = 0; i < chunkSize; i++) {
+      const span = document.createElement('span');
+      span.className = 'word';
+
+      const styleClass = pick(styles);
+      const sizeClass = pick(sizes);
+      span.classList.add(styleClass, sizeClass);
+
+      // Rare effect
+      if (Math.random() < 0.07) {
+        const fx = pick(effects);
+        if (fx) span.classList.add(fx);
+      }
+
+      // Occasional rotation
+      if (Math.random() < 0.06) {
+        const deg = (Math.random() - 0.5) * 20;
+        span.style.transform = `rotate(${deg}deg)`;
+        span.style.display = 'inline-block';
+      }
+
+      // Letter-spacing chaos
+      if (Math.random() < 0.1) {
+        span.style.letterSpacing = (Math.random() * 0.4).toFixed(2) + 'em';
+      }
+
+      // Opacity fade
+      if (Math.random() < 0.08) {
+        span.style.opacity = (0.2 + Math.random() * 0.5).toFixed(2);
+      }
+
+      span.textContent = getWord();
+      chunk.appendChild(span);
+
+      totalWords++;
+    }
+
+    field.appendChild(chunk);
+  }
+
+  // Initial fill
+  for (let i = 0; i < 6; i++) addChunk();
+
+  // Infinite scroll via IntersectionObserver
+  const sentinel = document.getElementById('sentinel');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        // Add multiple chunks at once for density
+        const count = 2 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < count; i++) addChunk();
+      }
+    });
+  }, { rootMargin: '400px' });
+
+  observer.observe(sentinel);
+
+  // Random background color flash on click
+  document.addEventListener('click', () => {
+    document.body.style.background = `hsl(${Math.random()*360},60%,5%)`;
+    setTimeout(() => document.body.style.background = '', 200);
+  });
+
+  // Cursor trail of doom
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;top:0;left:0;pointer-events:none;z-index:9997;mix-blend-mode:screen;';
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+
+  function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  let particles = [];
+  document.addEventListener('mousemove', e => {
+    for (let i = 0; i < 3; i++) {
+      particles.push({
+        x: e.clientX, y: e.clientY,
+        vx: (Math.random()-0.5)*3, vy: (Math.random()-0.5)*3 - 1,
+        life: 1,
+        color: `hsl(${Math.random()*40},100%,55%)`
+      });
+    }
+  });
+
+  (function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles = particles.filter(p => p.life > 0);
+    particles.forEach(p => {
+      ctx.globalAlpha = p.life * 0.6;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.life * 3, 0, Math.PI * 2);
+      ctx.fill();
+      p.x += p.vx; p.y += p.vy;
+      p.life -= 0.04;
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(loop);
+  })();
+</script>
+</body>
+</html>
