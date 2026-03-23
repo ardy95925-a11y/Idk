@@ -3,38 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>THE VOID SPEAKS</title>
+<title>HOW RETARDED ARE YOU</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Fira+Code:wght@300;400;500&display=swap');
 
   :root {
     --bg:         #040609;
-    --bg2:        #07090f;
-    --glass-bg:   rgba(8, 12, 22, 0.60);
-    --glass-edge: rgba(120, 150, 255, 0.10);
-    --glass-glow: rgba(60, 100, 255, 0.06);
-
-    --crimson:  #bb2211;
-    --ember:    #dd3300;
-    --azure:    #2255ee;
-    --violet:   #6633cc;
-    --frost:    rgba(190, 210, 255, 0.75);
-    --mist:     rgba(160, 180, 220, 0.35);
-    --steel:    #556688;
-    --bone:     #ccc4b4;
-    --teal:     #00bbaa;
-    --gold:     #997722;
-    --silver:   #7788aa;
-    --dim:      rgba(255,255,255,0.08);
-    --ink:      rgba(255,255,255,0.03);
+    --glass-bg:   rgba(8, 12, 22, 0.65);
+    --glass-edge: rgba(120, 150, 255, 0.12);
+    --glass-glow: rgba(60, 100, 255, 0.07);
+    --crimson:    #bb2211;
+    --ember:      #dd3300;
+    --azure:      #3366ff;
+    --violet:     #7744dd;
+    --frost:      rgba(190, 210, 255, 0.85);
+    --mist:       rgba(160, 180, 220, 0.45);
+    --steel:      #556688;
+    --bone:       #ccc4b4;
+    --teal:       #00ccbb;
+    --gold:       #cc9933;
+    --silver:     #7788aa;
+    --dim:        rgba(255,255,255,0.06);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  html {
-    scroll-behavior: smooth;
-    background: var(--bg);
-  }
+  html { background: var(--bg); scroll-behavior: smooth; }
 
   body {
     background: var(--bg);
@@ -42,10 +36,13 @@
     overflow-x: hidden;
     font-family: 'Fira Code', monospace;
     color: var(--bone);
-    overscroll-behavior-y: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
   }
 
-  /* Subtle noise grain — much lighter */
+  /* Noise grain */
   body::after {
     content: '';
     position: fixed;
@@ -58,214 +55,379 @@
     opacity: 0.05;
     animation: grain 0.8s steps(1) infinite;
   }
-
   @keyframes grain {
-    0%, 100% { transform: translate(0,0); }
-    20% { transform: translate(-2%,-2%); }
-    40% { transform: translate(2%,1%); }
-    60% { transform: translate(-1%,3%); }
-    80% { transform: translate(3%,-1%); }
+    0%,100%{transform:translate(0,0)} 20%{transform:translate(-2%,-2%)} 40%{transform:translate(2%,1%)} 60%{transform:translate(-1%,3%)} 80%{transform:translate(3%,-1%)}
   }
 
-  /* ─── AMBIENT ORBS ────────────────────────────────────────── */
-  .bg-orb {
-    position: fixed;
-    border-radius: 50%;
-    filter: blur(140px);
+  /* Orbs */
+  .bg-orb { position: fixed; border-radius: 50%; filter: blur(140px); pointer-events: none; z-index: 0; }
+  #orb1 { width:700px; height:700px; background:radial-gradient(circle,rgba(40,60,200,0.18) 0%,transparent 70%); top:-180px; left:-180px; animation:orbDrift1 28s ease-in-out infinite; }
+  #orb2 { width:500px; height:500px; background:radial-gradient(circle,rgba(100,30,180,0.14) 0%,transparent 70%); bottom:-80px; right:-100px; animation:orbDrift2 22s ease-in-out infinite; }
+  #orb3 { width:400px; height:400px; background:radial-gradient(circle,rgba(180,20,20,0.08) 0%,transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%); animation:orbDrift3 35s ease-in-out infinite; }
+  @keyframes orbDrift1{0%,100%{transform:translate(0,0)}50%{transform:translate(100px,80px)}}
+  @keyframes orbDrift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-80px,-60px)}}
+  @keyframes orbDrift3{0%,100%{transform:translate(-50%,-50%)}33%{transform:translate(-40%,-60%)}66%{transform:translate(-60%,-40%)}}
+
+  /* ─── LAYOUT ─────────────────────────────────────────────── */
+  .screen {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1), transform 0.5s cubic-bezier(0.22,1,0.36,1);
     pointer-events: none;
-    z-index: 0;
   }
-  #orb1 {
-    width: 700px; height: 700px;
-    background: radial-gradient(circle, rgba(40,60,200,0.18) 0%, transparent 70%);
-    top: -180px; left: -180px;
-    animation: orbDrift1 28s ease-in-out infinite;
+  .screen.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
   }
-  #orb2 {
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(100,30,180,0.14) 0%, transparent 70%);
-    bottom: -80px; right: -100px;
-    animation: orbDrift2 22s ease-in-out infinite;
+  .screen.exit {
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
   }
-  #orb3 {
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(180,20,20,0.08) 0%, transparent 70%);
-    top: 50%; left: 50%;
-    transform: translate(-50%,-50%);
-    animation: orbDrift3 35s ease-in-out infinite;
-  }
-  @keyframes orbDrift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(100px,80px)} }
-  @keyframes orbDrift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-80px,-60px)} }
-  @keyframes orbDrift3 { 0%,100%{transform:translate(-50%,-50%)} 33%{transform:translate(-40%,-60%)} 66%{transform:translate(-60%,-40%)} }
 
-  /* ─── HEADER ─────────────────────────────────────────────── */
-  #header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    text-align: center;
-    padding: 18px 24px 16px;
+  /* ─── GLASS CARD ─────────────────────────────────────────── */
+  .card {
     background: var(--glass-bg);
     backdrop-filter: blur(28px) saturate(160%);
     -webkit-backdrop-filter: blur(28px) saturate(160%);
-    border-bottom: 1px solid var(--glass-edge);
+    border: 1px solid var(--glass-edge);
+    border-radius: 12px;
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.04),
-      0 4px 40px rgba(0,0,0,0.6),
-      0 0 80px var(--glass-glow);
+      0 1px 0 rgba(255,255,255,0.05) inset,
+      0 8px 60px rgba(0,0,0,0.7),
+      0 0 100px var(--glass-glow);
+    padding: 48px 52px;
+    max-width: 680px;
+    width: 100%;
   }
 
-  #header h1 {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(1rem, 3.5vw, 1.7rem);
-    font-weight: 600;
-    color: rgba(210, 220, 255, 0.92);
-    letter-spacing: 0.35em;
+  /* ─── TYPOGRAPHY ─────────────────────────────────────────── */
+  .eyebrow {
+    font-size: 0.58rem;
+    letter-spacing: 0.4em;
     text-transform: uppercase;
-    text-shadow: 0 0 40px rgba(80,120,255,0.3);
-  }
-
-  #header p {
-    font-family: 'Fira Code', monospace;
-    font-size: 0.6rem;
     color: var(--steel);
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    margin-top: 6px;
+    margin-bottom: 18px;
     font-weight: 300;
   }
 
-  /* Header rule */
-  #header-rule {
+  h1.title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.4rem, 5vw, 2.6rem);
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    line-height: 1.15;
+    color: rgba(210,220,255,0.95);
+    text-shadow: 0 0 60px rgba(80,120,255,0.25);
+    margin-bottom: 16px;
+  }
+
+  h2.q-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    font-weight: 600;
+    color: rgba(200,215,255,0.9);
+    line-height: 1.4;
+    margin-bottom: 28px;
+    letter-spacing: 0.02em;
+  }
+
+  .subtitle {
+    font-size: 0.78rem;
+    color: var(--mist);
+    line-height: 1.7;
+    margin-bottom: 32px;
+    font-weight: 300;
+  }
+
+  /* ─── DIVIDER ────────────────────────────────────────────── */
+  .divider {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-top: 10px;
-    justify-content: center;
-    opacity: 0.4;
+    margin: 24px 0;
   }
-  #header-rule span {
-    display: block;
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
     height: 1px;
-    width: 80px;
-    background: linear-gradient(90deg, transparent, var(--azure), transparent);
+    background: linear-gradient(90deg, transparent, rgba(120,150,255,0.2), transparent);
   }
-  #header-rule em {
-    font-style: normal;
+  .divider span {
     font-size: 0.5rem;
-    color: var(--silver);
-    letter-spacing: 0.4em;
-    font-family: 'Fira Code', monospace;
+    letter-spacing: 0.5em;
+    color: var(--steel);
   }
 
-  /* ─── WORD FIELD ─────────────────────────────────────────── */
-  #word-field {
-    min-height: 100vh;
-    padding: 28px 24px;
-    position: relative;
-    z-index: 1;
+  /* ─── PROGRESS ───────────────────────────────────────────── */
+  .progress-wrap {
+    margin-bottom: 32px;
   }
-
-  .word-chunk {
+  .progress-label {
     display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 8px 12px;
-    margin-bottom: 2px;
-    padding: 20px 22px;
-    background: rgba(255,255,255,0.015);
-    border: 1px solid rgba(255,255,255,0.04);
-    border-radius: 6px;
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    animation: chunkIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
-    opacity: 0;
-    transform: translateY(16px);
+    justify-content: space-between;
+    font-size: 0.58rem;
+    letter-spacing: 0.3em;
+    color: var(--steel);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .progress-bar {
+    height: 2px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--azure), var(--violet));
+    border-radius: 2px;
+    transition: width 0.6s cubic-bezier(0.22,1,0.36,1);
+    box-shadow: 0 0 8px rgba(80,120,255,0.5);
   }
 
-  @keyframes chunkIn {
-    to { opacity: 1; transform: translateY(0); }
+  /* ─── OPTIONS ────────────────────────────────────────────── */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 
-  .word {
-    display: inline-block;
+  .option-btn {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 8px;
+    padding: 14px 20px;
+    cursor: pointer;
     font-family: 'Fira Code', monospace;
-    line-height: 1.3;
-    transition: color 0.15s ease, text-shadow 0.15s ease;
-    cursor: default;
-    will-change: transform;
+    font-size: 0.82rem;
+    color: var(--bone);
+    text-align: left;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    line-height: 1.4;
     font-weight: 400;
   }
+  .option-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(80,120,255,0.08), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .option-btn:hover {
+    border-color: rgba(120,160,255,0.3);
+    color: rgba(210,225,255,0.95);
+    transform: translateX(4px);
+    box-shadow: 0 0 20px rgba(60,100,255,0.1), inset 0 0 20px rgba(60,100,255,0.04);
+  }
+  .option-btn:hover::before { opacity: 1; }
+  .option-btn.selected {
+    border-color: rgba(120,160,255,0.5);
+    background: rgba(80,120,255,0.1);
+    color: rgba(210,225,255,0.98);
+    box-shadow: 0 0 30px rgba(60,100,255,0.15);
+  }
+  .option-letter {
+    display: inline-block;
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    color: var(--steel);
+    margin-right: 10px;
+    text-transform: uppercase;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .option-btn:hover .option-letter,
+  .option-btn.selected .option-letter { color: rgba(120,160,255,0.9); }
 
-  .word:hover {
-    animation: hoverLift 0.2s ease forwards;
-    filter: brightness(1.4) saturate(1.2);
+  /* ─── BUTTONS ────────────────────────────────────────────── */
+  .btn {
+    display: inline-block;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 14px 36px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.06);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .btn:hover::after { opacity: 1; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, rgba(50,90,220,0.6), rgba(100,50,200,0.6));
+    color: rgba(220,230,255,0.95);
+    border: 1px solid rgba(120,160,255,0.3);
+    box-shadow: 0 4px 30px rgba(50,90,220,0.25), 0 1px 0 rgba(255,255,255,0.08) inset;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 40px rgba(50,90,220,0.4), 0 1px 0 rgba(255,255,255,0.1) inset;
+  }
+  .btn-primary:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: none;
   }
 
-  @keyframes hoverLift {
-    to { transform: translateY(-2px) scale(1.04); }
+  .btn-ghost {
+    background: rgba(255,255,255,0.04);
+    color: var(--silver);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .btn-ghost:hover {
+    color: var(--bone);
+    border-color: rgba(255,255,255,0.15);
+    transform: translateY(-1px);
   }
 
-  /* ─── WORD STYLE VARIANTS (refined palette) ──────────────── */
-  .style-crimson { color: var(--crimson); text-shadow: 0 0 12px rgba(187,34,17,0.4); }
-  .style-ember   { color: var(--ember);   text-shadow: 0 0 16px rgba(221,51,0,0.35); }
-  .style-azure   { color: #4477ff;        text-shadow: 0 0 14px rgba(68,119,255,0.35); }
-  .style-violet  { color: #8855dd;        text-shadow: 0 0 14px rgba(136,85,221,0.3); }
-  .style-frost   { color: rgba(190,210,255,0.80); }
-  .style-mist    { color: var(--mist); }
-  .style-steel   { color: var(--steel); }
-  .style-bone    { color: var(--bone); }
-  .style-teal    { color: #00ccbb;        text-shadow: 0 0 10px rgba(0,204,187,0.3); }
-  .style-gold    { color: #bb9933;        text-shadow: 0 0 10px rgba(187,153,51,0.25); }
-  .style-silver  { color: var(--silver); }
-  .style-dim     { color: rgba(255,255,255,0.06); }
-  .style-white   { color: rgba(255,255,255,0.88); }
-  .style-shadow  { color: rgba(255,255,255,0.02); }
-  .style-rose    { color: #cc3366;        text-shadow: 0 0 12px rgba(204,51,102,0.3); }
-
-  /* ─── SIZE VARIANTS ──────────────────────────────────────── */
-  .sz-micro  { font-size: 0.5rem;  font-weight: 300; }
-  .sz-tiny   { font-size: 0.65rem; font-weight: 300; }
-  .sz-small  { font-size: 0.82rem; }
-  .sz-med    { font-size: 1.0rem;  }
-  .sz-large  { font-size: 1.4rem;  font-weight: 500; }
-  .sz-huge   { font-size: 2.0rem;  font-family: 'Cinzel', serif; font-weight: 400; letter-spacing: 0.05em; }
-  .sz-titan  { font-size: 3.2rem;  font-family: 'Cinzel', serif; font-weight: 900; letter-spacing: 0.02em; }
-  .sz-mono   { font-size: 1.6rem;  font-family: 'Fira Code', monospace; font-weight: 500; }
-
-  /* ─── SPECIAL EFFECTS (restrained) ──────────────────────── */
-  .pulse      { animation: pulseAnim 3s ease-in-out infinite; }
-  .blink      { animation: blinkAnim 2.4s step-start infinite; }
-  .glitch-anim { animation: glitchAnim 3.5s infinite; }
-  .drift      { animation: driftAnim 6s ease-in-out infinite alternate; }
-
-  @keyframes pulseAnim {
-    0%,100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(1.03); }
+  .btn-danger {
+    background: linear-gradient(135deg, rgba(187,34,17,0.5), rgba(120,20,20,0.5));
+    color: rgba(255,200,190,0.9);
+    border: 1px solid rgba(200,60,40,0.3);
+    box-shadow: 0 4px 30px rgba(150,20,10,0.2);
   }
-  @keyframes blinkAnim { 50% { opacity: 0; } }
-  @keyframes glitchAnim {
-    0%,90%,100% { text-shadow: inherit; transform: none; }
-    91% { text-shadow: -2px 0 rgba(68,119,255,0.8), 2px 0 rgba(187,34,17,0.8); transform: translateX(-1px); }
-    93% { text-shadow: 2px 0 rgba(136,85,221,0.8), -2px 0 rgba(0,204,187,0.5); transform: translateX(2px); }
-    95% { text-shadow: inherit; transform: none; }
-  }
-  @keyframes driftAnim {
-    from { transform: translateY(0); }
-    to   { transform: translateY(-3px); }
+  .btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 40px rgba(150,20,10,0.35);
   }
 
-  /* ─── SENTINEL ───────────────────────────────────────────── */
-  #sentinel { height: 1px; width: 100%; }
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  /* ─── RESULT ─────────────────────────────────────────────── */
+  .result-score {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(3rem, 12vw, 6rem);
+    font-weight: 900;
+    line-height: 1;
+    margin: 16px 0;
+    background: linear-gradient(135deg, var(--azure), var(--violet), var(--crimson));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 30px rgba(80,120,255,0.3));
+    animation: scorePop 0.6s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  @keyframes scorePop {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+
+  .result-label {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    color: rgba(210,220,255,0.9);
+  }
+
+  .result-desc {
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: var(--mist);
+    font-weight: 300;
+  }
+
+  .result-badge {
+    display: inline-block;
+    font-size: clamp(2rem, 8vw, 3.5rem);
+    margin-bottom: 8px;
+    animation: badgeFloat 3s ease-in-out infinite;
+  }
+  @keyframes badgeFloat {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 0.72rem;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-key { color: var(--steel); letter-spacing: 0.15em; text-transform: uppercase; }
+  .stat-val { color: var(--bone); font-weight: 500; }
+
+  /* ─── AGE GATE ───────────────────────────────────────────── */
+  .warning-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(187,34,17,0.12);
+    border: 1px solid rgba(187,34,17,0.25);
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 0.62rem;
+    letter-spacing: 0.3em;
+    color: rgba(255,130,110,0.8);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .warning-dot {
+    width: 5px; height: 5px;
+    background: var(--ember);
+    border-radius: 50%;
+    animation: warningPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes warningPulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50% { opacity:0.4; transform:scale(0.7); }
+  }
 
   /* ─── SCROLLBAR ──────────────────────────────────────────── */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb {
-    background: rgba(80,100,200,0.3);
-    border-radius: 2px;
+  ::-webkit-scrollbar-thumb { background: rgba(80,100,200,0.3); border-radius: 2px; }
+
+  /* ─── CATEGORY TAGS ──────────────────────────────────────── */
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .tag {
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 3px;
+    font-weight: 500;
   }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(80,100,200,0.5); }
+  .tag-low    { background: rgba(0,200,150,0.1);  border: 1px solid rgba(0,200,150,0.2);  color: rgba(0,200,150,0.8); }
+  .tag-mid    { background: rgba(50,100,255,0.1);  border: 1px solid rgba(50,100,255,0.2);  color: rgba(100,160,255,0.8); }
+  .tag-high   { background: rgba(200,100,0,0.1);   border: 1px solid rgba(200,100,0,0.2);   color: rgba(255,160,60,0.8); }
+  .tag-apex   { background: rgba(187,34,17,0.1);   border: 1px solid rgba(187,34,17,0.2);   color: rgba(255,100,80,0.8); }
 </style>
 </head>
 <body>
@@ -274,223 +436,364 @@
 <div class="bg-orb" id="orb2"></div>
 <div class="bg-orb" id="orb3"></div>
 
-<div id="header">
-  <h1>The Void Speaks</h1>
-  <div id="header-rule">
-    <span></span>
-    <em>∞ · unending transmission · scroll to descend</em>
-    <span></span>
+<!-- ── SCREEN 0: AGE GATE ──────────────────────────────────── -->
+<div class="screen active" id="screen-gate">
+  <div class="card" style="text-align:center;">
+    <div class="warning-badge"><span class="warning-dot"></span> Adults Only · 18+</div>
+    <div class="eyebrow">Mandatory Checkpoint</div>
+    <h1 class="title">Stop Right There</h1>
+    <div class="divider"><span>⬥</span></div>
+    <p class="subtitle">
+      This diagnostic contains crude humour, offensive language, and the kind of 
+      content that would make your primary school teacher weep. 
+      You must be 18 or older to proceed.<br><br>
+      By continuing you confirm you are a legal adult and that you understand 
+      this is satire, not a medical assessment.
+    </p>
+    <div class="btn-row" style="justify-content:center;">
+      <button class="btn btn-primary" onclick="passGate()">I am 18+ · Enter</button>
+      <button class="btn btn-danger" onclick="failGate()">I am under 18</button>
+    </div>
   </div>
-  <p>continuous · generative · 18+ · you were warned</p>
 </div>
 
-<div id="word-field"></div>
-<div id="sentinel"></div>
+<!-- ── SCREEN 1: INTRO ─────────────────────────────────────── -->
+<div class="screen" id="screen-intro">
+  <div class="card" style="text-align:center;">
+    <div class="eyebrow">Certified Diagnostic Tool · v6.6.6</div>
+    <h1 class="title">How Retarded<br>Are You?</h1>
+    <div class="divider"><span>⬥</span></div>
+    <p class="subtitle">
+      A rigorous 10-question psychometric survey, scientifically calibrated to 
+      determine your precise level of stupidity. Results are binding. 
+      There is no appeals process. Your family will be notified.
+    </p>
+    <div style="font-size:0.65rem; color:var(--steel); letter-spacing:0.2em; line-height:1.9;">
+      · No actual intelligence is assessed<br>
+      · Results are meaningless and offensive by design<br>
+      · Average completion time: 3 minutes (5 if you're one of the subjects)
+    </div>
+    <div class="btn-row" style="justify-content:center; margin-top:32px;">
+      <button class="btn btn-primary" onclick="startQuiz()">Begin Assessment →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SCREEN 2: QUESTIONS ─────────────────────────────────── -->
+<div class="screen" id="screen-quiz">
+  <div class="card">
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="q-counter">Question 1 of 10</span>
+        <span id="q-percent">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <h2 class="q-title" id="q-text"></h2>
+    <div class="options" id="q-options"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()" disabled>Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SCREEN 3: RESULT ────────────────────────────────────── -->
+<div class="screen" id="screen-result">
+  <div class="card" style="text-align:center;">
+    <div class="eyebrow">Diagnostic Complete · Official Verdict</div>
+    <div class="result-badge" id="result-badge"></div>
+    <div class="result-score" id="result-score"></div>
+    <div class="result-label" id="result-label"></div>
+    <div class="divider"><span>⬥</span></div>
+    <p class="result-desc" id="result-desc"></p>
+    <div class="tags" style="justify-content:center;" id="result-tags"></div>
+    <div class="divider"><span>⬥</span></div>
+    <div id="result-stats" style="text-align:left; margin-bottom:8px;"></div>
+    <div class="btn-row" style="justify-content:center; margin-top:24px;">
+      <button class="btn btn-primary" onclick="restartQuiz()">Retry (won't help)</button>
+      <button class="btn btn-ghost" onclick="shareResult()">Copy Result</button>
+    </div>
+    <div id="copy-confirm" style="font-size:0.6rem;color:var(--teal);letter-spacing:0.2em;margin-top:10px;opacity:0;transition:opacity 0.3s;">Copied to clipboard ✓</div>
+  </div>
+</div>
+
+<!-- ── SCREEN: UNDERAGE ────────────────────────────────────── -->
+<div class="screen" id="screen-underage">
+  <div class="card" style="text-align:center;">
+    <div class="result-badge">🚫</div>
+    <h1 class="title">Go Away, Child</h1>
+    <div class="divider"><span>⬥</span></div>
+    <p class="subtitle">
+      This content is not for you. Go do your homework.<br>
+      Come back when you're older and have made worse decisions.
+    </p>
+    <div style="font-size:0.62rem;color:var(--steel);letter-spacing:0.2em;">
+      · recommended activity: minecraft<br>
+      · see you in a few years
+    </div>
+  </div>
+</div>
 
 <script>
-  const words = [
-    "hellspawn","damnation","abomination","infernal","forsaken","wretched","putrid","vile","festering",
-    "pestilence","malevolent","sinister","nefarious","diabolical","accursed","wicked","malice","blight",
-    "desecrate","profane","blaspheme","defile","corrupt","decayed","rancid","fetid","gangrenous","necrotic",
-    "desecrated","tormented","suffering","anguish","despair","torment","agony","misery","anguished",
-    "grotesque","hideous","revolting","repulsive","disgusting","loathsome","repugnant","obnoxious","offensive",
-    "contemptible","deplorable","despicable","detestable","execrable","odious","heinous","atrocious",
-    "barbaric","savage","brutal","vicious","ferocious","ruthless","merciless","pitiless","heartless",
-    "monstrous","ghastly","horrific","terrifying","nightmarish","apocalyptic","catastrophic","cataclysmic",
-    "cesspool","garbage","filth","sewage","excrement","mucus","bile","pus","phlegm","vomit","slime",
-    "scum","vermin","parasite","maggot","leech","rodent","roach","pestilent","infested","crawling",
-    "mangled","mutilated","dismembered","decapitated","eviscerated","disembowelled","gutted","shredded",
-    "obliterated","annihilated","decimated","pulverized","incinerated","vaporized","demolished","destroyed",
-    "chaos","anarchy","mayhem","pandemonium","bedlam","havoc","carnage","massacre","slaughter","bloodbath",
-    "scrotum","phallus","rectum","anus","bodily","excrete","flatulence","belch","regurgitate","defecate",
-    "fornicate","copulate","promiscuous","debauchery","depravity","perversion","deviance","degenerate",
-    "bastard","jackass","dipshit","numbskull","buffoon","imbecile","moron","cretin","halfwit","dunce",
-    "schmuck","prick","ass","bitch","damn","hell","crap","shit","piss","bastardize","dumbass",
-    "scumbag","dirtbag","lowlife","scoundrel","miscreant","reprobate","villain","wretch","swine","rat",
-    "verminous","disgusting","revolting","putrefying","decomposing","rotting","festering","suppurating",
-    "malodorous","miasmatic","sepulchral","necromantic","demoniacal","phantasmagoric","eldritch","cthonic",
-    "stygian","abyssal","plutonian","infernal","gehenna","tartarean","erebean","hadean","leviathan",
-    "behemoth","mammon","beelzebub","mephistophelean","luciferian","satanic","demonic","diabolic",
-    "hexed","cursed","jinxed","doomed","damned","condemned","forsaken","banished","exiled","excommunicated",
-    "psychotic","deranged","unhinged","demented","lunatic","maniacal","frenzied","berserk","rabid","feral",
-    "cannibalistic","predatory","feral","primal","savage","animalistic","brutish","bestial","ghoulish",
-    "splooge","queef","taint","gooch","ballsack","nipple","armpit","fungal","athlete","mold","spore",
-    "toxic","radioactive","mutant","abhorrent","aberrant","deviant","abnormal","freakish","grotesque",
-    "cadaverous","emaciated","skeletal","gaunt","haggard","pallid","ashen","deathly","ghostly","spectral",
-    "wraith","banshee","poltergeist","revenant","zombie","undead","lich","ghoul","shade","apparition",
-    "maggotbrain","slimeball","shitstain","dipwad","fuckwit","jackoff","cocksucker","bastardly","twatwaffle",
-    "douchebaggery","asshattery","fuckery","bullshit","horseshit","cockamamie","balderdash","poppycock",
-    "gobbledygook","drivel","hogwash","malarkey","claptrap","rubbish","tripe","twaddle","balderdash",
-    "knobhead","tosser","wanker","bellend","muppet","numpty","pillock","plonker","prat","git","minger",
-    "blithering","bumbling","fumbling","stumbling","mumbling","grumbling","crumbling","tumbling","rumbling",
-    "catastrophically","apocalyptically","horrendously","atrociously","despicably","contemptibly","abhorrently",
-    "putrefaction","decomposition","mortification","necrosis","gangrene","sepsis","infection","infestation",
-    "obliteration","annihilation","decimation","eradication","extermination","liquidation","termination",
-    "degeneracy","debauchery","licentiousness","lewdness","lasciviousness","obscenity","indecency","filthiness",
-    "blasphemy","sacrilege","heresy","apostasy","paganism","heathenism","idolatry","iconoclasm","nihilism",
-    "misanthropy","sociopathy","psychopathy","narcissism","sadism","masochism","nihilism","solipsism",
-    "screaming","shrieking","wailing","howling","screeching","bellowing","roaring","thundering","crashing",
-    "exploding","detonating","erupting","imploding","collapsing","disintegrating","fragmenting","shattering",
-    "cretinous","moronic","idiotic","asinine","brainless","vapid","inane","mindless","senseless","witless",
-    "guttersnipe","ruffian","hooligan","thug","delinquent","miscreant","felon","criminal","deviant","pervert",
-    "muck","grime","sludge","ooze","goop","crud","dreck","dross","filth","sewage","waste","refuse","garbage",
-    "fungus","mildew","mold","rot","decay","putrefaction","corruption","contamination","pollution","toxin",
-    "venom","poison","acid","caustic","corrosive","noxious","virulent","pernicious","deleterious","baleful",
-    "shrivel","wrinkle","crusty","flaky","scaly","scabby","warty","pimply","boil","pustule","carbuncle",
-    "hemorrhoid","hernia","ulcer","lesion","abscess","cyst","tumor","polyp","growth","nodule","lump",
-    "drool","slobber","drivel","froth","foam","spittle","mucus","snot","booger","earwax","tartar","plaque",
-    "groin","crotch","buttocks","posterior","derriere","backside","hindquarters","rump","posterior","rear",
-    "foulness","grossness","nastiness","dirtiness","uncleanliness","unhygienic","unsanitary","contaminated",
-    "infuriating","maddening","aggravating","exasperating","insufferable","intolerable","unbearable","odious",
-    "catastrophe","disaster","calamity","tragedy","apocalypse","armageddon","doomsday","ragnarok","extinction",
-    "pungent","acrid","fetid","rank","reeking","stinking","malodorous","noisome","noxious","offensive",
-    "spleen","bowel","intestine","colon","rectum","bladder","kidney","liver","gallbladder","appendix",
-    "hemorrhaging","bleeding","oozing","seeping","leaking","dripping","trickling","flowing","gushing",
-    "grotesquerie","monstrosity","abomination","freak","aberration","anomaly","mutation","deformity",
-    "psychedelic","hallucinogenic","delusional","paranoid","schizophrenic","bipolar","dissociative",
-    "seizure","convulsion","spasm","twitch","tremor","shudder","shiver","quake","quiver","vibrate",
-  ];
+// ─── QUESTIONS ──────────────────────────────────────────────
+const questions = [
+  {
+    text: "You are assembling flat-pack furniture. The instructions are lost. You:",
+    options: [
+      { text: "Find a PDF of the manual online", score: 0 },
+      { text: "Wing it. You've got eyes, haven't you?", score: 1 },
+      { text: "Ask a friend who's never built furniture either", score: 2 },
+      { text: "Sit on the pile of parts and cry. That's basically a chair.", score: 3 },
+    ]
+  },
+  {
+    text: "A fire extinguisher is labelled 'Class A - Wood and Paper Fires.' Your kitchen is on fire. You:",
+    options: [
+      { text: "Check what class of fire it is before acting", score: 0 },
+      { text: "Use it. Surely fire is fire.", score: 2 },
+      { text: "Film it for TikTok first, then use it", score: 3 },
+      { text: "Pour water on it. You read online that works.", score: 1 },
+    ]
+  },
+  {
+    text: "You are due at an important meeting at 9am. It is currently 8:52am and you are still in bed. You:",
+    options: [
+      { text: "Frantically get ready and sprint — you might make it", score: 0 },
+      { text: "Lie there calculating if it's actually important", score: 1 },
+      { text: "Text 'on my way!' from bed and roll over", score: 2 },
+      { text: "Call in sick. The meeting was probably stupid anyway.", score: 3 },
+    ]
+  },
+  {
+    text: "You've been talking for 10 minutes and the person opposite you is glassy-eyed. You:",
+    options: [
+      { text: "Wrap up and ask how they're doing", score: 0 },
+      { text: "Talk louder. Maybe they're hard of hearing.", score: 2 },
+      { text: "Keep going — you were just getting to the good part", score: 3 },
+      { text: "Ask if they're okay then use their answer as a segue back to your story", score: 1 },
+    ]
+  },
+  {
+    text: "A warning says 'Do not consume.' You:",
+    options: [
+      { text: "Do not consume it", score: 0 },
+      { text: "Smell it first then decide", score: 1 },
+      { text: "Consume a small amount to see what happens", score: 2 },
+      { text: "Consume all of it immediately and update Wikipedia with results", score: 3 },
+    ]
+  },
+  {
+    text: "Your phone battery is at 2%. You have no charger. You need to make an important call in one hour. You:",
+    options: [
+      { text: "Find a charger, a power bank, or a shop immediately", score: 0 },
+      { text: "Spend 20 minutes on TikTok, then look for a charger", score: 3 },
+      { text: "Turn it off and wait — you'll make the call from 2%", score: 1 },
+      { text: "Make the call now in case the battery dies, interrupting it mid-sentence", score: 2 },
+    ]
+  },
+  {
+    text: "You are about to sign a 40-page contract. You:",
+    options: [
+      { text: "Read it, or pay someone who can", score: 0 },
+      { text: "Skim the first page and the last", score: 1 },
+      { text: "Skip to the signature page. It's fine, it's probably boilerplate.", score: 2 },
+      { text: "Sign it with an 'x' because writing your name out feels like commitment", score: 3 },
+    ]
+  },
+  {
+    text: "The WiFi isn't working. You've already restarted the router. You:",
+    options: [
+      { text: "Check for outages on your phone's data, then diagnose properly", score: 0 },
+      { text: "Restart the router again", score: 1 },
+      { text: "Restart the router eleven more times in quick succession", score: 2 },
+      { text: "Unplug everything in the house including the fridge, then restart the router", score: 3 },
+    ]
+  },
+  {
+    text: "You meet someone new. They seem important. You immediately:",
+    options: [
+      { text: "Introduce yourself, make eye contact, ask a question about them", score: 0 },
+      { text: "Tell them something impressive about yourself", score: 1 },
+      { text: "Tell them about a medical issue you have", score: 2 },
+      { text: "Blank on your own name for a full three seconds", score: 3 },
+    ]
+  },
+  {
+    text: "It is 3am. You have work at 7am. You are watching 'just one more episode.' You:",
+    options: [
+      { text: "Turn it off. Sleep is too important.", score: 0 },
+      { text: "Finish the episode then go to sleep, no matter what", score: 1 },
+      { text: "Finish the series. You can sleep when you're dead.", score: 3 },
+      { text: "Promise yourself one more episode and say this sincerely six consecutive times", score: 2 },
+    ]
+  },
+];
 
-  const styles = [
-    "style-crimson","style-ember","style-azure","style-violet","style-frost",
-    "style-mist","style-steel","style-bone","style-teal","style-gold",
-    "style-silver","style-dim","style-white","style-shadow","style-rose"
-  ];
+// ─── RESULTS TABLE ───────────────────────────────────────────
+const results = [
+  {
+    min: 0, max: 6,
+    badge: "🎓",
+    score: "4%",
+    label: "Functionally Intact",
+    desc: "Congratulations. You are one of approximately eleven people on Earth who actually reads instructions, retains information, and makes decisions using logic. You are insufferable at parties and probably floss daily. The rest of us despise you.",
+    tags: [{ label: "Low Risk", cls: "tag-low" }, { label: "Statistically Rare", cls: "tag-low" }],
+    stats: { "Stupidity Percentile": "Top 4%", "IQ Estimate": "Annoyingly fine", "Threat Level": "To our egos only", "Prognosis": "Excellent. Unfortunately." }
+  },
+  {
+    min: 7, max: 13,
+    badge: "🧠",
+    score: "28%",
+    label: "Mild to Moderate",
+    desc: "You are mostly functional with occasional spectacular lapses in judgment that you later describe as 'having a moment.' You make the same mistake roughly three times before learning. You have signed something you shouldn't have. You will again.",
+    tags: [{ label: "Average", cls: "tag-mid" }, { label: "Salvageable", cls: "tag-mid" }],
+    stats: { "Stupidity Percentile": "Top 28%", "IQ Estimate": "Room temperature (Celsius)", "Recurring Mistake": "Overconfidence", "Prognosis": "Could go either way." }
+  },
+  {
+    min: 14, max: 20,
+    badge: "🌀",
+    score: "61%",
+    label: "Considerable Impairment",
+    desc: "Something is wrong. Not catastrophically — you've survived this long, which is almost impressive — but you have a talent for making situations measurably worse through sheer commitment to the wrong course of action. You believe in yourself. That is the problem.",
+    tags: [{ label: "Elevated Risk", cls: "tag-high" }, { label: "Self-Assured", cls: "tag-high" }, { label: "Concerning", cls: "tag-high" }],
+    stats: { "Stupidity Percentile": "Top 61%", "IQ Estimate": "Warm bath water (Fahrenheit)", "Defining Trait": "Wrong with confidence", "Prognosis": "Seek supervision." }
+  },
+  {
+    min: 21, max: 27,
+    badge: "🔥",
+    score: "84%",
+    label: "Advanced Deficiency",
+    desc: "You are a danger to yourself and a source of entertainment to everyone within a 10-metre radius. Professionals debate whether you are deeply stupid or accidentally avant-garde. The difference has never been clinically established. You have unintentionally started at least one small fire.",
+    tags: [{ label: "High Risk", cls: "tag-apex" }, { label: "Chronically Online", cls: "tag-high" }, { label: "A Story", cls: "tag-high" }],
+    stats: { "Stupidity Percentile": "Top 84%", "IQ Estimate": "A warm Carlsberg", "Signature Move": "Wrong, loudly", "Prognosis": "Frankly impressive you made it here." }
+  },
+  {
+    min: 28, max: 999,
+    badge: "💀",
+    score: "100%",
+    label: "An Apex Specimen",
+    desc: "We have never seen numbers like this in a non-clinical setting. You are a statistical anomaly, a phenomenon — like a perfect storm, but of bad decisions. Scientists would study you if they could stop laughing. You are, without question, profoundly, magnificently, cosmically retarded. We say this with a kind of awe.",
+    tags: [{ label: "Maximum Level", cls: "tag-apex" }, { label: "Contact Authorities", cls: "tag-apex" }, { label: "Academic Interest", cls: "tag-apex" }],
+    stats: { "Stupidity Percentile": "The entire chart", "IQ Estimate": "Theoretical negative", "Risk to Others": "Immediate", "Prognosis": "Genuinely unclear how you got here." }
+  }
+];
 
-  const sizes = [
-    "sz-micro","sz-tiny","sz-tiny","sz-small","sz-small","sz-small","sz-med","sz-med","sz-med","sz-med",
-    "sz-large","sz-large","sz-huge","sz-mono","sz-titan"
-  ];
+// ─── STATE ──────────────────────────────────────────────────
+let currentQ   = 0;
+let totalScore = 0;
+let answers    = [];
+let selectedOption = null;
 
-  const effects = [null,null,null,null,null,null,null,null,"pulse","blink","glitch-anim","drift"];
+// ─── GATE ───────────────────────────────────────────────────
+function passGate() { transitionTo('screen-gate', 'screen-intro'); }
+function failGate() { transitionTo('screen-gate', 'screen-underage'); }
 
-  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+// ─── QUIZ START ──────────────────────────────────────────────
+function startQuiz() {
+  currentQ = 0; totalScore = 0; answers = [];
+  renderQuestion();
+  transitionTo('screen-intro', 'screen-quiz');
+}
 
-  const field = document.getElementById('word-field');
+function renderQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('q-counter').textContent = `Question ${currentQ + 1} of ${questions.length}`;
+  const pct = Math.round((currentQ / questions.length) * 100);
+  document.getElementById('q-percent').textContent = pct + '%';
+  document.getElementById('progress-fill').style.width = pct + '%';
 
-  function getWord() {
-    const r = Math.random();
-    if (r < 0.07) {
-      const w1 = pick(words), w2 = pick(words);
-      return w1.slice(0, Math.ceil(w1.length * 0.55)) + w2.slice(Math.floor(w2.length * 0.4));
-    } else if (r < 0.12) {
-      return pick(words).toUpperCase();
-    } else if (r < 0.16) {
-      const w = pick(words);
-      return w.slice(0,3) + '—' + w;
-    }
-    return pick(words);
+  const opts = document.getElementById('q-options');
+  opts.innerHTML = '';
+  selectedOption = null;
+  document.getElementById('btn-next').disabled = true;
+
+  const letters = ['A','B','C','D'];
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-letter">${letters[i]}</span>${opt.text}`;
+    btn.onclick = () => selectOption(i, opt.score, btn);
+    opts.appendChild(btn);
+  });
+}
+
+function selectOption(idx, score, btn) {
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedOption = score;
+  document.getElementById('btn-next').disabled = false;
+}
+
+function nextQuestion() {
+  if (selectedOption === null) return;
+  totalScore += selectedOption;
+  currentQ++;
+
+  if (currentQ >= questions.length) {
+    showResult();
+    return;
   }
 
-  function addChunk() {
-    const chunkSize = 35 + Math.floor(Math.random() * 55);
-    const chunk = document.createElement('div');
-    chunk.className = 'word-chunk';
-    // stagger chunk animation slightly
-    chunk.style.animationDelay = '0ms';
+  // Animate out then in
+  const opts = document.getElementById('q-options');
+  const qTitle = document.getElementById('q-text');
+  [opts, qTitle].forEach(el => { el.style.opacity = '0'; el.style.transform = 'translateY(8px)'; el.style.transition = 'all 0.2s ease'; });
+  setTimeout(() => {
+    renderQuestion();
+    [opts, qTitle].forEach(el => { el.style.transition = ''; el.style.opacity = ''; el.style.transform = ''; });
+  }, 200);
+}
 
-    for (let i = 0; i < chunkSize; i++) {
-      const span = document.createElement('span');
-      span.className = 'word';
+// ─── RESULT ──────────────────────────────────────────────────
+function showResult() {
+  const r = results.find(x => totalScore >= x.min && totalScore <= x.max);
 
-      span.classList.add(pick(styles), pick(sizes));
+  document.getElementById('result-badge').textContent = r.badge;
+  document.getElementById('result-score').textContent  = r.score;
+  document.getElementById('result-label').textContent  = r.label;
+  document.getElementById('result-desc').textContent   = r.desc;
 
-      if (Math.random() < 0.06) {
-        const fx = pick(effects);
-        if (fx) span.classList.add(fx);
-      }
+  const tagsEl = document.getElementById('result-tags');
+  tagsEl.innerHTML = r.tags.map(t => `<span class="tag ${t.cls}">${t.label}</span>`).join('');
 
-      // Occasional subtle rotation — much less extreme
-      if (Math.random() < 0.04) {
-        const deg = (Math.random() - 0.5) * 6;
-        span.style.transform = `rotate(${deg}deg)`;
-        span.style.display = 'inline-block';
-      }
+  const statsEl = document.getElementById('result-stats');
+  statsEl.innerHTML = Object.entries(r.stats).map(([k,v]) =>
+    `<div class="stat-row"><span class="stat-key">${k}</span><span class="stat-val">${v}</span></div>`
+  ).join('');
 
-      if (Math.random() < 0.08) {
-        span.style.letterSpacing = (Math.random() * 0.3).toFixed(2) + 'em';
-      }
+  // Update progress bar to 100%
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('q-percent').textContent = '100%';
 
-      if (Math.random() < 0.07) {
-        span.style.opacity = (0.15 + Math.random() * 0.5).toFixed(2);
-      }
+  transitionTo('screen-quiz', 'screen-result');
+}
 
-      span.textContent = getWord();
-      chunk.appendChild(span);
-    }
+function restartQuiz() {
+  transitionTo('screen-result', 'screen-intro');
+}
 
-    field.appendChild(chunk);
-  }
-
-  // Initial fill
-  for (let i = 0; i < 5; i++) addChunk();
-
-  // Infinite scroll — load ahead generously for smooth feel
-  const sentinel = document.getElementById('sentinel');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const count = 2 + Math.floor(Math.random() * 3);
-        // Use idle callback if available for smooth scroll
-        const addFn = () => { for (let i = 0; i < count; i++) addChunk(); };
-        if ('requestIdleCallback' in window) {
-          requestIdleCallback(addFn, { timeout: 200 });
-        } else {
-          requestAnimationFrame(addFn);
-        }
-      }
-    });
-  }, { rootMargin: '600px' });
-
-  observer.observe(sentinel);
-
-  // Subtle background color shift on click
-  document.addEventListener('click', () => {
-    document.body.style.transition = 'background 0.3s ease';
-    document.body.style.background = `hsl(${210 + Math.random()*40},30%,3%)`;
-    setTimeout(() => {
-      document.body.style.background = '';
-      document.body.style.transition = '';
-    }, 400);
+function shareResult() {
+  const score = document.getElementById('result-score').textContent;
+  const label = document.getElementById('result-label').textContent;
+  const text  = `I scored ${score} retarded (${label}) on the official diagnostic. howretardedyou.example · 18+ only`;
+  navigator.clipboard.writeText(text).then(() => {
+    const c = document.getElementById('copy-confirm');
+    c.style.opacity = '1';
+    setTimeout(() => c.style.opacity = '0', 2200);
   });
+}
 
-  // Subtle cursor trail — refined cool tones only
-  const canvas = document.createElement('canvas');
-  canvas.style.cssText = 'position:fixed;top:0;left:0;pointer-events:none;z-index:9997;mix-blend-mode:screen;';
-  document.body.appendChild(canvas);
-  const ctx = canvas.getContext('2d');
-
-  function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-  resizeCanvas();
-  window.addEventListener('resize', resizeCanvas);
-
-  let particles = [];
-  document.addEventListener('mousemove', e => {
-    if (Math.random() > 0.5) return; // spawn fewer particles
-    particles.push({
-      x: e.clientX, y: e.clientY,
-      vx: (Math.random() - 0.5) * 1.5,
-      vy: (Math.random() - 0.5) * 1.5 - 0.5,
-      life: 1,
-      color: `hsla(${200 + Math.random()*80},80%,70%,1)`
-    });
-  });
-
-  (function loop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles = particles.filter(p => p.life > 0);
-    particles.forEach(p => {
-      ctx.globalAlpha = p.life * 0.35;
-      ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.life * 2, 0, Math.PI * 2);
-      ctx.fill();
-      p.x += p.vx; p.y += p.vy;
-      p.life -= 0.035;
-    });
-    ctx.globalAlpha = 1;
-    requestAnimationFrame(loop);
-  })();
+// ─── TRANSITIONS ─────────────────────────────────────────────
+function transitionTo(fromId, toId) {
+  const from = document.getElementById(fromId);
+  const to   = document.getElementById(toId);
+  from.classList.add('exit');
+  setTimeout(() => {
+    from.classList.remove('active','exit');
+    to.classList.add('active');
+  }, 300);
+}
 </script>
 </body>
 </html>
