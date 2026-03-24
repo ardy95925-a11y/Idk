@@ -1,1206 +1,272 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Folio</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #e8e6e1;
-    --bg-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    --glass: rgba(255,255,255,0.52);
-    --glass-border: rgba(255,255,255,0.7);
-    --glass-shadow: 0 4px 32px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
-    --ink: #1a1814;
-    --ink-2: #5a5751;
-    --ink-3: #9a9691;
-    --accent: #2d4a3e;
-    --accent-light: rgba(45,74,62,0.08);
-    --divider: rgba(0,0,0,0.08);
-    --toolbar-h: 52px;
-    --title-bar-h: 56px;
-  }
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Folio — A beautiful, minimal document editor for writers.">
+<meta property="og:title" content="Folio">
+<meta property="og:description" content="A beautiful writing space that goes wherever you do.">
+<meta property="og:type" content="website">
+<title>Folio — Beautiful Writing</title>
+<link rel="stylesheet" href="style.css">
 
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background-color: var(--bg);
-    background-image:
-      radial-gradient(ellipse at 20% 0%, rgba(180,200,190,0.5) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 100%, rgba(200,190,170,0.4) 0%, transparent 60%),
-      var(--bg-noise);
-    min-height: 100vh;
-    color: var(--ink);
-    overflow-x: hidden;
-  }
-
-  /* ---- TITLE BAR ---- */
-  #title-bar {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: var(--title-bar-h);
-    z-index: 100;
-    background: var(--glass);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border-bottom: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    gap: 16px;
-  }
-
-  #app-name {
-    font-family: 'Lora', serif;
-    font-size: 17px;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    color: var(--accent);
-    flex-shrink: 0;
-  }
-
-  #doc-title-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 400;
-    color: var(--ink);
-    caret-color: var(--accent);
-    padding: 6px 10px;
-    border-radius: 6px;
-    transition: background 0.2s;
-  }
-  #doc-title-input::placeholder { color: var(--ink-3); }
-  #doc-title-input:focus { background: rgba(255,255,255,0.4); }
-
-  .title-actions {
-    display: flex;
-    gap: 8px;
-    flex-shrink: 0;
-  }
-
-  .pill-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 14px;
-    border-radius: 20px;
-    border: 1px solid var(--glass-border);
-    background: rgba(255,255,255,0.45);
-    color: var(--ink-2);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 400;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-  }
-  .pill-btn:hover { background: rgba(255,255,255,0.7); color: var(--ink); }
-  .pill-btn.primary {
-    background: var(--accent);
-    color: #fff;
-    border-color: transparent;
-  }
-  .pill-btn.primary:hover { background: #1e3329; }
-
-  #save-indicator {
-    font-size: 12px;
-    color: var(--ink-3);
-    white-space: nowrap;
-  }
-
-  /* ---- TOOLBAR ---- */
-  #toolbar-wrap {
-    position: fixed;
-    top: var(--title-bar-h);
-    left: 0; right: 0;
-    z-index: 99;
-    background: rgba(232,230,225,0.7);
-    backdrop-filter: blur(16px) saturate(140%);
-    -webkit-backdrop-filter: blur(16px) saturate(140%);
-    border-bottom: 1px solid var(--divider);
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-  }
-  #toolbar-wrap::-webkit-scrollbar { display: none; }
-
-  #toolbar {
-    display: flex;
-    align-items: center;
-    height: var(--toolbar-h);
-    padding: 0 16px;
-    gap: 2px;
-    min-width: max-content;
-  }
-
-  .tb-divider {
-    width: 1px;
-    height: 22px;
-    background: var(--divider);
-    margin: 0 6px;
-    flex-shrink: 0;
-  }
-
-  .tb-btn {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: transparent;
-    border-radius: 7px;
-    cursor: pointer;
-    color: var(--ink-2);
-    font-size: 14px;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 400;
-    transition: all 0.15s;
-    flex-shrink: 0;
-    position: relative;
-  }
-  .tb-btn:hover { background: rgba(0,0,0,0.06); color: var(--ink); }
-  .tb-btn.active {
-    background: var(--accent-light);
-    color: var(--accent);
-  }
-  .tb-btn svg { pointer-events: none; }
-
-  .tb-select {
-    height: 32px;
-    padding: 0 8px;
-    border: 1px solid var(--divider);
-    border-radius: 7px;
-    background: rgba(255,255,255,0.4);
-    color: var(--ink);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    cursor: pointer;
-    outline: none;
-    flex-shrink: 0;
-    -webkit-appearance: none;
-    appearance: none;
-    padding-right: 22px;
-    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%235a5751' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 7px center;
-  }
-
-  #font-size-input {
-    width: 44px;
-    height: 32px;
-    padding: 0 6px;
-    border: 1px solid var(--divider);
-    border-radius: 7px;
-    background: rgba(255,255,255,0.4);
-    color: var(--ink);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    text-align: center;
-    outline: none;
-    flex-shrink: 0;
-  }
-
-  #color-btn {
-    position: relative;
-    overflow: visible;
-  }
-  #color-indicator {
-    position: absolute;
-    bottom: 4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 16px;
-    height: 3px;
-    border-radius: 2px;
-    background: var(--ink);
-  }
-  #text-color-picker, #highlight-color-picker {
-    position: absolute;
-    width: 0; height: 0;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  /* ---- PAGE AREA ---- */
-  #page-area {
-    padding-top: calc(var(--title-bar-h) + var(--toolbar-h) + 32px);
-    padding-bottom: 80px;
-    display: flex;
-    justify-content: center;
-  }
-
-  #page {
-    width: 100%;
-    max-width: 820px;
-    background: var(--glass);
-    backdrop-filter: blur(24px) saturate(150%);
-    -webkit-backdrop-filter: blur(24px) saturate(150%);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255,255,255,0.3) inset;
-    margin: 0 16px;
-    min-height: calc(100vh - var(--title-bar-h) - var(--toolbar-h) - 60px);
-    padding: 64px 72px;
-  }
-
-  #editor {
-    outline: none;
-    font-family: 'Lora', serif;
-    font-size: 17px;
-    line-height: 1.85;
-    color: var(--ink);
-    caret-color: var(--accent);
-    min-height: 480px;
-    word-break: break-word;
-  }
-
-  #editor:empty::before {
-    content: attr(data-placeholder);
-    color: var(--ink-3);
-    pointer-events: none;
-    font-style: italic;
-  }
-
-  #editor h1 { font-size: 2em; line-height: 1.25; margin: 0.6em 0 0.3em; font-weight: 600; }
-  #editor h2 { font-size: 1.5em; line-height: 1.3; margin: 0.6em 0 0.3em; font-weight: 500; }
-  #editor h3 { font-size: 1.2em; line-height: 1.4; margin: 0.5em 0 0.2em; font-weight: 500; }
-  #editor p { margin: 0 0 0.5em; }
-  #editor ul, #editor ol { padding-left: 1.6em; margin: 0.4em 0 0.6em; }
-  #editor li { margin: 0.2em 0; }
-  #editor blockquote {
-    border-left: 3px solid var(--accent);
-    padding-left: 1em;
-    margin: 0.8em 0;
-    color: var(--ink-2);
-    font-style: italic;
-  }
-  #editor a { color: var(--accent); text-decoration: underline; }
-  #editor table {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 1em 0;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-  }
-  #editor td, #editor th {
-    border: 1px solid var(--divider);
-    padding: 8px 12px;
-    text-align: left;
-  }
-  #editor th { background: rgba(0,0,0,0.04); font-weight: 500; }
-  #editor hr { border: none; border-top: 1px solid var(--divider); margin: 1.5em 0; }
-  #editor img { max-width: 100%; border-radius: 8px; display: block; margin: 1em 0; }
-
-  /* ---- WORD COUNT BAR ---- */
-  #status-bar {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    height: 36px;
-    background: var(--glass);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid var(--divider);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
-    font-size: 12px;
-    color: var(--ink-3);
-    z-index: 90;
-    letter-spacing: 0.02em;
-  }
-  #status-bar span { display: flex; gap: 4px; }
-
-  /* ---- MODAL ---- */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.25);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-  }
-  .modal-overlay.open { display: flex; }
-
-  .modal {
-    background: rgba(245,243,239,0.92);
-    backdrop-filter: blur(32px) saturate(160%);
-    -webkit-backdrop-filter: blur(32px) saturate(160%);
-    border: 1px solid var(--glass-border);
-    border-radius: 18px;
-    box-shadow: 0 16px 64px rgba(0,0,0,0.14);
-    padding: 28px;
-    width: 90%;
-    max-width: 440px;
-    animation: modal-in 0.2s ease;
-  }
-  @keyframes modal-in {
-    from { opacity: 0; transform: translateY(12px) scale(0.98); }
-    to { opacity: 1; transform: none; }
-  }
-
-  .modal h3 {
-    font-family: 'Lora', serif;
-    font-size: 18px;
-    font-weight: 500;
-    margin-bottom: 6px;
-  }
-  .modal p {
-    font-size: 13px;
-    color: var(--ink-2);
-    margin-bottom: 18px;
-    line-height: 1.6;
-  }
-
-  .modal-field {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid var(--divider);
-    border-radius: 10px;
-    background: rgba(255,255,255,0.6);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    color: var(--ink);
-    outline: none;
-    margin-bottom: 12px;
-    transition: border-color 0.2s;
-  }
-  .modal-field:focus { border-color: var(--accent); }
-
-  .modal-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 8px;
-  }
-
-  .modal-link-box {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-  .modal-link-box input {
-    flex: 1;
-    padding: 9px 12px;
-    border: 1px solid var(--divider);
-    border-radius: 10px;
-    background: rgba(255,255,255,0.5);
-    font-size: 12px;
-    color: var(--ink-2);
-    outline: none;
-    font-family: 'DM Sans', sans-serif;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .modal-section {
-    margin-bottom: 16px;
-  }
-  .modal-section label {
-    display: block;
-    font-size: 12px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--ink-3);
-    margin-bottom: 8px;
-  }
-
-  .export-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .export-opt {
-    padding: 12px;
-    border: 1px solid var(--divider);
-    border-radius: 10px;
-    background: rgba(255,255,255,0.45);
-    cursor: pointer;
-    transition: all 0.15s;
-    text-align: center;
-  }
-  .export-opt:hover { background: rgba(255,255,255,0.7); border-color: var(--accent); }
-  .export-opt .eo-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
-  .export-opt .eo-desc { font-size: 11px; color: var(--ink-3); }
-
-  /* ---- FIND/REPLACE ---- */
-  #find-bar {
-    display: none;
-    position: fixed;
-    top: calc(var(--title-bar-h) + var(--toolbar-h));
-    right: 20px;
-    z-index: 150;
-    background: rgba(245,243,239,0.9);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-top: none;
-    border-radius: 0 0 12px 12px;
-    padding: 12px 14px;
-    box-shadow: var(--glass-shadow);
-    min-width: 280px;
-  }
-  #find-bar.open { display: block; }
-  #find-bar input {
-    width: 100%;
-    padding: 7px 10px;
-    border: 1px solid var(--divider);
-    border-radius: 7px;
-    background: rgba(255,255,255,0.5);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    color: var(--ink);
-    outline: none;
-    margin-bottom: 6px;
-  }
-  .find-row {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
-  .find-row span { font-size: 12px; color: var(--ink-3); flex: 1; }
-  .find-btn {
-    padding: 5px 10px;
-    border: 1px solid var(--divider);
-    border-radius: 6px;
-    background: rgba(255,255,255,0.5);
-    font-size: 12px;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    color: var(--ink-2);
-  }
-  .find-btn:hover { background: rgba(255,255,255,0.8); }
-
-  /* ---- TOAST ---- */
-  #toast {
-    position: fixed;
-    bottom: 52px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--ink);
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-size: 13px;
-    z-index: 300;
-    opacity: 0;
-    transition: all 0.3s;
-    pointer-events: none;
-    white-space: nowrap;
-  }
-  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  /* ---- CONTEXT MENU ---- */
-  #context-menu {
-    display: none;
-    position: fixed;
-    z-index: 400;
-    background: rgba(245,243,239,0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-    padding: 6px;
-    min-width: 160px;
-  }
-  .cm-item {
-    padding: 9px 14px;
-    border-radius: 7px;
-    font-size: 13px;
-    color: var(--ink-2);
-    cursor: pointer;
-    transition: background 0.1s;
-  }
-  .cm-item:hover { background: var(--accent-light); color: var(--ink); }
-  .cm-sep { height: 1px; background: var(--divider); margin: 4px 0; }
-
-  /* ---- PRINT STYLES ---- */
-  @media print {
-    #title-bar, #toolbar-wrap, #status-bar, #find-bar, #toast { display: none !important; }
-    body { background: white; }
-    #page-area { padding: 0; }
-    #page {
-      background: white;
-      box-shadow: none;
-      border: none;
-      border-radius: 0;
-      margin: 0;
-      max-width: 100%;
-      padding: 40px 60px;
-    }
-  }
-
-  /* ---- RESPONSIVE ---- */
-  @media (max-width: 700px) {
-    #page { padding: 32px 24px; }
-    .pill-btn span { display: none; }
-    #save-indicator { display: none; }
-  }
-</style>
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
 </head>
 <body>
 
-<!-- Title Bar -->
-<div id="title-bar">
-  <span id="app-name">Folio</span>
-  <input id="doc-title-input" type="text" placeholder="Untitled document" maxlength="80" autocomplete="off" spellcheck="false">
-  <span id="save-indicator">Saved</span>
-  <div class="title-actions">
-    <button class="pill-btn" onclick="openShare()"><span>Share</span></button>
-    <button class="pill-btn" onclick="openExport()"><span>Export</span></button>
-  </div>
-</div>
+<!-- NAV -->
+<nav id="home-nav">
+  <a class="folio-logo-wrap" href="index.html" aria-label="Folio Home">
+    <span class="folio-logo-mark" style="color:var(--accent);display:inline-flex;">
+      <svg width="28" height="28" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path class="logo-page" d="M8 34 C8 34 8 7 20 7 C20 7 20 34 20 34 Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
+        <path class="logo-page" d="M32 34 C32 34 32 7 20 7 C20 7 20 34 20 34 Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" fill="none"/>
+        <path class="logo-spine" d="M8 34 L32 34" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path class="logo-line logo-line-1" d="M23 14 L29 14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <path class="logo-line logo-line-2" d="M23 19 L29 19" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <path class="logo-line logo-line-3" d="M23 24 L29 24" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+    </span>
+    <span class="folio-logo-text">Folio</span>
+  </a>
 
-<!-- Toolbar -->
-<div id="toolbar-wrap">
-  <div id="toolbar">
+  <div class="nav-right">
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
 
-    <!-- History -->
-    <button class="tb-btn" title="Undo" onclick="exec('undo')">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 7.5H10C11.933 7.5 13.5 9.067 13.5 11C13.5 12.933 11.933 14.5 10 14.5H7" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M5.5 5L3 7.5L5.5 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <button class="tb-btn" title="Redo" onclick="exec('redo')">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13 7.5H6C4.067 7.5 2.5 9.067 2.5 11C2.5 12.933 4.067 14.5 6 14.5H9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M10.5 5L13 7.5L10.5 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-
-    <div class="tb-divider"></div>
-
-    <!-- Font -->
-    <select class="tb-select" id="font-select" title="Font" onchange="changeFont(this.value)" style="width:100px">
-      <option value="'Lora', serif">Lora</option>
-      <option value="'DM Sans', sans-serif">DM Sans</option>
-      <option value="Georgia, serif">Georgia</option>
-      <option value="'Courier New', monospace">Courier</option>
-      <option value="'Times New Roman', serif">Times</option>
-    </select>
-
-    <!-- Font size -->
-    <input id="font-size-input" type="number" min="8" max="96" value="17" title="Font size" onchange="changeFontSize(this.value)">
-
-    <div class="tb-divider"></div>
-
-    <!-- Format -->
-    <button class="tb-btn" id="btn-bold" title="Bold" onclick="exec('bold')">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3.5 7H8.5C9.881 7 11 8.119 11 9.5C11 10.881 9.881 12 8.5 12H3.5V7ZM3.5 7H7.5C8.881 7 10 5.881 10 4.5C10 3.119 8.881 2 7.5 2H3.5V7Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <button class="tb-btn" id="btn-italic" title="Italic" onclick="exec('italic')">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5.5 2H9.5M4.5 12H8.5M8 2L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-    </button>
-    <button class="tb-btn" id="btn-underline" title="Underline" onclick="exec('underline')">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 12H11M4 2V7C4 9.209 5.343 10 7 10C8.657 10 10 9.209 10 7V2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-    </button>
-    <button class="tb-btn" id="btn-strikeThrough" title="Strikethrough" onclick="exec('strikeThrough')">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7H12M5 4.5C5 3.119 5.895 2 7 2C8.105 2 9 2.895 9 3.5M5 9.5C5 10.881 5.895 12 7 12C8.105 12 9 11.105 9 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-    </button>
-
-    <!-- Color -->
-    <button class="tb-btn" id="color-btn" title="Text color" onclick="document.getElementById('text-color-picker').click()">
-      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1L10 10H3L6.5 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M4 7.5H9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-      <div id="color-indicator"></div>
-      <input type="color" id="text-color-picker" onchange="applyTextColor(this.value)">
-    </button>
-    <button class="tb-btn" title="Highlight" onclick="document.getElementById('highlight-color-picker').click()">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 12H12M8.5 2.5L11.5 5.5L6 11H3V8L8.5 2.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
-      <input type="color" id="highlight-color-picker" value="#fef08a" onchange="applyHighlight(this.value)">
-    </button>
-
-    <div class="tb-divider"></div>
-
-    <!-- Headings -->
-    <select class="tb-select" id="heading-select" title="Paragraph style" onchange="applyHeading(this.value)" style="width:92px">
-      <option value="p">Body</option>
-      <option value="h1">Heading 1</option>
-      <option value="h2">Heading 2</option>
-      <option value="h3">Heading 3</option>
-      <option value="blockquote">Quote</option>
-      <option value="pre">Code</option>
-    </select>
-
-    <div class="tb-divider"></div>
-
-    <!-- Align -->
-    <button class="tb-btn" id="btn-justifyLeft" title="Align left" onclick="exec('justifyLeft')">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3H12M2 7H9M2 11H12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-    </button>
-    <button class="tb-btn" id="btn-justifyCenter" title="Center" onclick="exec('justifyCenter')">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3H12M3.5 7H10.5M2 11H12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-    </button>
-    <button class="tb-btn" id="btn-justifyRight" title="Align right" onclick="exec('justifyRight')">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3H12M5 7H12M2 11H12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-    </button>
-
-    <div class="tb-divider"></div>
-
-    <!-- Lists -->
-    <button class="tb-btn" id="btn-insertUnorderedList" title="Bullet list" onclick="exec('insertUnorderedList')">
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="3" cy="4" r="1.2" fill="currentColor"/><circle cx="3" cy="7.5" r="1.2" fill="currentColor"/><circle cx="3" cy="11" r="1.2" fill="currentColor"/><path d="M6 4H13M6 7.5H13M6 11H13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-    </button>
-    <button class="tb-btn" id="btn-insertOrderedList" title="Numbered list" onclick="exec('insertOrderedList')">
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2 3H3V6M2 6H4M2 9.5C2 8.5 4 8.5 4 9.5C4 10 3 10.5 2 11.5H4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 4H13M6 7.5H13M6 11H13" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-    </button>
-    <button class="tb-btn" title="Indent" onclick="exec('indent')">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3H12M2 11H12M6 7H12M3 5L5 7L3 9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <button class="tb-btn" title="Outdent" onclick="exec('outdent')">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3H12M2 11H12M6 7H12M5 5L3 7L5 9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-
-    <div class="tb-divider"></div>
-
-    <!-- Insert -->
-    <button class="tb-btn" title="Insert link" onclick="insertLink()">
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M5.5 9.5L9.5 5.5M8 4L9.172 2.828C9.953 2.047 11.219 2.047 12 2.828C12.781 3.609 12.781 4.875 12 5.656L10.828 6.828M6 9.172L4.828 10.344C4.047 11.125 2.781 11.125 2 10.344C1.219 9.563 1.219 8.297 2 7.516L3.172 6.344" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-    </button>
-    <button class="tb-btn" title="Insert image" onclick="insertImage()">
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1.5" y="2.5" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.3"/><circle cx="5" cy="6" r="1.3" fill="currentColor"/><path d="M1.5 10L5 7L7.5 9.5L10 7.5L13.5 10" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
-    </button>
-    <button class="tb-btn" title="Insert table" onclick="insertTable()">
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1.5" y="1.5" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M1.5 6H13.5M1.5 10H13.5M5.5 1.5V13.5M9.5 1.5V13.5" stroke="currentColor" stroke-width="1.2"/></svg>
-    </button>
-    <button class="tb-btn" title="Insert horizontal rule" onclick="exec('insertHorizontalRule')">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    </button>
-
-    <div class="tb-divider"></div>
-
-    <!-- Misc -->
-    <button class="tb-btn" title="Find and Replace" onclick="toggleFind()">
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.3"/><path d="M9.5 9.5L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-    </button>
-    <button class="tb-btn" title="Clear formatting" onclick="exec('removeFormat')">
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M3 2H12L9 8.5H7L5.5 12H4L5.5 8.5H3L6 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 10L14 12M10 12L12 10M12 10L10 8M14 8L12 10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-    </button>
-    <button class="tb-btn" title="Print" onclick="window.print()">
-      <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="3" y="1.5" width="9" height="5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="3" y="9" width="9" height="4.5" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M3 10.5H1.5V6.5C1.5 5.672 2.172 5 3 5H12C12.828 5 13.5 5.672 13.5 6.5V10.5H12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="11" cy="7.5" r="0.7" fill="currentColor"/></svg>
-    </button>
-
-  </div>
-</div>
-
-<!-- Find/Replace Bar -->
-<div id="find-bar">
-  <input type="text" id="find-input" placeholder="Find..." onkeydown="findKeydown(event)">
-  <input type="text" id="replace-input" placeholder="Replace with...">
-  <div class="find-row">
-    <span id="find-count"></span>
-    <button class="find-btn" onclick="findPrev()">Prev</button>
-    <button class="find-btn" onclick="findNext()">Next</button>
-    <button class="find-btn" onclick="replaceOne()">Replace</button>
-    <button class="find-btn" onclick="replaceAll()">All</button>
-    <button class="find-btn" onclick="toggleFind()">Close</button>
-  </div>
-</div>
-
-<!-- Page -->
-<div id="page-area">
-  <div id="page">
-    <div id="editor" contenteditable="true" spellcheck="true" data-placeholder="Begin writing..."></div>
-  </div>
-</div>
-
-<!-- Status Bar -->
-<div id="status-bar">
-  <span><strong id="word-count">0</strong>&nbsp;words</span>
-  <span><strong id="char-count">0</strong>&nbsp;characters</span>
-  <span><strong id="read-time">0</strong>&nbsp;min read</span>
-</div>
-
-<!-- Share Modal -->
-<div class="modal-overlay" id="share-modal">
-  <div class="modal">
-    <h3>Share document</h3>
-    <p>Copy the link below to share. Opening the link restores the full document, including content and title. Works in any browser, including Google Classroom submissions.</p>
-    <div class="modal-link-box">
-      <input type="text" id="share-url-input" readonly placeholder="Generating link...">
-      <button class="pill-btn primary" onclick="copyShareLink()">Copy</button>
+    <!-- Logged-out state -->
+    <div id="nav-auth-out">
+      <button class="pill-btn primary" onclick="handleSignIn()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1a6 6 0 1 1 0 12A6 6 0 0 1 7 1Zm0 2.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm0 6.5a4.5 4.5 0 0 0-3.5 1.68A4.97 4.97 0 0 0 7 13a4.97 4.97 0 0 0 3.5-1.32A4.5 4.5 0 0 0 7 10Z" fill="currentColor"/></svg>
+        Sign in
+      </button>
     </div>
-    <div class="modal-section">
-      <label>Submit to Google Classroom</label>
-      <p style="font-size:12px;color:var(--ink-3);margin-bottom:0;">Copy the link above, then paste it as a link submission in Google Classroom. The recipient can open and view the full document.</p>
-    </div>
-    <div class="modal-actions">
-      <button class="pill-btn" onclick="closeModal('share-modal')">Done</button>
-    </div>
-  </div>
-</div>
 
-<!-- Export Modal -->
-<div class="modal-overlay" id="export-modal">
-  <div class="modal">
-    <h3>Export</h3>
-    <p>Choose a format to download or copy your document.</p>
-    <div class="export-grid">
-      <div class="export-opt" onclick="exportHTML()">
-        <div class="eo-title">.HTML</div>
-        <div class="eo-desc">Full styled page</div>
+    <!-- Logged-in state -->
+    <div id="nav-auth-in" style="display:none;">
+      <div class="user-chip" onclick="toggleUserMenu()" id="user-chip">
+        <div class="avatar-placeholder" id="user-avatar-nav">?</div>
+        <span id="user-chip-name">Loading…</span>
       </div>
-      <div class="export-opt" onclick="exportTXT()">
-        <div class="eo-title">.TXT</div>
-        <div class="eo-desc">Plain text</div>
-      </div>
-      <div class="export-opt" onclick="copyMarkdown()">
-        <div class="eo-title">Markdown</div>
-        <div class="eo-desc">Copy to clipboard</div>
-      </div>
-      <div class="export-opt" onclick="window.print(); closeModal('export-modal')">
-        <div class="eo-title">Print / PDF</div>
-        <div class="eo-desc">Save as PDF</div>
+      <!-- User dropdown -->
+      <div id="user-menu" style="
+        display:none; position:fixed; top:70px; right:20px; z-index:500;
+        background:var(--page-bg); border:1px solid var(--glass-border); border-radius:14px;
+        box-shadow:var(--glass-shadow); padding:8px; min-width:180px;
+        animation: modal-in 0.2s ease; backdrop-filter:blur(24px);
+      ">
+        <div style="padding:12px 14px 8px; border-bottom:1px solid var(--divider); margin-bottom:6px;">
+          <div id="menu-user-name" style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:2px;"></div>
+          <div id="menu-user-email" style="font-size:12px;color:var(--ink-3);"></div>
+        </div>
+        <div class="cm-item" onclick="signOut();toggleUserMenu()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 12H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h2M9 10l3-3-3-3M12 7H5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Sign out
+        </div>
       </div>
     </div>
-    <div class="modal-actions" style="margin-top:16px">
-      <button class="pill-btn" onclick="closeModal('export-modal')">Cancel</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="home-hero">
+  <div class="hero-content">
+    <div class="hero-logo-wrap">
+      <svg class="hero-logo-mark" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="color:var(--accent)">
+        <path class="logo-page" d="M14 66 C14 66 14 14 40 14 C40 14 40 66 40 66 Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" fill="none"/>
+        <path class="logo-page" d="M66 66 C66 66 66 14 40 14 C40 14 40 66 40 66 Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" fill="none"/>
+        <path class="logo-spine" d="M14 66 L66 66" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <path class="logo-line logo-line-1" d="M46 27 L59 27" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="logo-line logo-line-2" d="M46 37 L59 37" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        <path class="logo-line logo-line-3" d="M46 47 L59 47" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <h1 class="hero-title"><span class="accent-char">F</span>olio</h1>
+    </div>
+
+    <p class="hero-tagline">A beautiful writing space that thinks with you.<br>Simple, elegant, and always saved.</p>
+
+    <div class="hero-actions">
+      <button class="pill-btn primary" onclick="newDocument()" style="gap:9px">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        New document
+      </button>
+      <button class="pill-btn" onclick="document.getElementById('recent-section').scrollIntoView({behavior:'smooth'})">
+        Open recent
+      </button>
+    </div>
+
+    <!-- Sign-in card (only shown when logged out) -->
+    <div id="sign-in-card">
+      <p>Sign in with Google to keep your documents safe across devices.</p>
+      <button class="google-btn" onclick="handleSignIn()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+        Continue with Google
+      </button>
+      <p style="font-size:11px;color:var(--ink-3);margin-top:10px;margin-bottom:0">
+        Or write anonymously — documents save in your browser.
+      </p>
     </div>
   </div>
-</div>
+</section>
 
-<!-- Link Modal -->
-<div class="modal-overlay" id="link-modal">
-  <div class="modal">
-    <h3>Insert link</h3>
-    <input type="text" class="modal-field" id="link-text-input" placeholder="Link text (leave blank to wrap selection)">
-    <input type="url" class="modal-field" id="link-url-input" placeholder="https://...">
-    <div class="modal-actions">
-      <button class="pill-btn" onclick="closeModal('link-modal')">Cancel</button>
-      <button class="pill-btn primary" onclick="confirmInsertLink()">Insert</button>
-    </div>
+<!-- RECENT DOCS -->
+<section id="recent-section">
+  <h2>Recent documents</h2>
+  <div class="docs-grid" id="docs-grid">
+    <!-- Filled by JS -->
   </div>
-</div>
+</section>
 
-<!-- Context Menu -->
-<div id="context-menu">
-  <div class="cm-item" onclick="exec('bold')">Bold</div>
-  <div class="cm-item" onclick="exec('italic')">Italic</div>
-  <div class="cm-item" onclick="exec('underline')">Underline</div>
-  <div class="cm-sep"></div>
-  <div class="cm-item" onclick="exec('copy')">Copy</div>
-  <div class="cm-item" onclick="exec('cut')">Cut</div>
-  <div class="cm-item" onclick="exec('paste')">Paste</div>
-  <div class="cm-sep"></div>
-  <div class="cm-item" onclick="exec('removeFormat')">Clear formatting</div>
-</div>
-
-<!-- Toast -->
+<!-- TOAST -->
 <div id="toast"></div>
 
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <h3>Delete document?</h3>
+    <p>This can't be undone. The document will be permanently removed.</p>
+    <div class="modal-actions">
+      <button class="pill-btn" onclick="closeModal('delete-modal')">Cancel</button>
+      <button class="pill-btn primary" style="background:var(--danger);border-color:var(--danger)" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
 <script>
-const editor = document.getElementById('editor');
-const titleInput = document.getElementById('doc-title-input');
-const saveIndicator = document.getElementById('save-indicator');
-let saveTimer;
-let currentDocId = 'doc_' + Date.now();
-let findMatches = [];
-let findIndex = 0;
+  let pendingDeleteId = null;
 
-// ---- LOAD ----
-(function init() {
-  // Check URL for shared doc
-  const params = new URLSearchParams(window.location.search);
-  const encoded = params.get('d');
-  if (encoded) {
-    try {
-      const data = JSON.parse(atob(decodeURIComponent(encoded)));
-      titleInput.value = data.title || '';
-      editor.innerHTML = data.html || '';
-      updateCounts();
-      showToast('Document loaded');
-      return;
-    } catch(e) {}
-  }
-  // Load from localStorage
-  const saved = localStorage.getItem('folio_current');
-  if (saved) {
-    try {
-      const data = JSON.parse(saved);
-      titleInput.value = data.title || '';
-      editor.innerHTML = data.html || '';
-      currentDocId = data.id || currentDocId;
-    } catch(e) {}
-  }
-  updateCounts();
-})();
+  /* ---- AUTH EVENTS ---- */
+  document.addEventListener('folio:auth', e => {
+    const user = e.detail.user;
+    const outEl = document.getElementById('nav-auth-out');
+    const inEl  = document.getElementById('nav-auth-in');
+    const signinCard = document.getElementById('sign-in-card');
 
-// ---- SAVE ----
-function scheduleSave() {
-  saveIndicator.textContent = 'Saving...';
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveDoc, 800);
-}
+    if (user) {
+      outEl.style.display = 'none';
+      inEl.style.display = 'block';
+      signinCard.style.display = 'none';
 
-function saveDoc() {
-  const data = {
-    id: currentDocId,
-    title: titleInput.value,
-    html: editor.innerHTML,
-    saved: new Date().toISOString()
-  };
-  localStorage.setItem('folio_current', JSON.stringify(data));
-  localStorage.setItem('folio_backup_' + currentDocId, JSON.stringify(data));
-  saveIndicator.textContent = 'Saved';
-}
-
-editor.addEventListener('input', () => { scheduleSave(); updateCounts(); });
-titleInput.addEventListener('input', scheduleSave);
-
-// ---- EXEC ----
-function exec(cmd, value = null) {
-  editor.focus();
-  document.execCommand(cmd, false, value);
-  updateToolbarState();
-}
-
-// ---- FONT / SIZE ----
-function changeFont(font) {
-  const sel = window.getSelection();
-  if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
-    exec('fontName', font.replace(/'/g, ''));
-  } else {
-    editor.style.fontFamily = font;
-  }
-  editor.focus();
-}
-
-function changeFontSize(size) {
-  const px = parseInt(size);
-  if (isNaN(px) || px < 6 || px > 200) return;
-  // Use fontSize command (maps 1-7)
-  const map = [[0,9],[10,10],[11,13],[14,18],[19,24],[25,32],[33,48],[49,200]];
-  let level = 3;
-  for (let i = 0; i < map.length; i++) {
-    if (px >= map[i][0] && px <= map[i][1]) { level = i; break; }
-  }
-  exec('fontSize', level);
-  editor.focus();
-}
-
-// ---- COLOR ----
-function applyTextColor(color) {
-  document.getElementById('color-indicator').style.background = color;
-  exec('foreColor', color);
-}
-
-function applyHighlight(color) {
-  exec('hiliteColor', color);
-}
-
-// ---- HEADING ----
-function applyHeading(tag) {
-  editor.focus();
-  if (tag === 'p') {
-    document.execCommand('formatBlock', false, 'p');
-  } else if (tag === 'pre') {
-    document.execCommand('formatBlock', false, 'pre');
-  } else if (tag === 'blockquote') {
-    document.execCommand('formatBlock', false, 'blockquote');
-  } else {
-    document.execCommand('formatBlock', false, tag);
-  }
-  updateToolbarState();
-}
-
-// ---- INSERT ----
-function insertLink() {
-  const sel = window.getSelection();
-  document.getElementById('link-text-input').value = sel ? sel.toString() : '';
-  document.getElementById('link-url-input').value = '';
-  openModal('link-modal');
-}
-
-function confirmInsertLink() {
-  const text = document.getElementById('link-text-input').value;
-  const url = document.getElementById('link-url-input').value.trim();
-  if (!url) return;
-  editor.focus();
-  if (text) {
-    exec('insertHTML', `<a href="${url}" target="_blank">${text}</a>`);
-  } else {
-    exec('createLink', url);
-  }
-  closeModal('link-modal');
-}
-
-function insertImage() {
-  const url = prompt('Image URL:');
-  if (url) exec('insertImage', url);
-}
-
-function insertTable() {
-  const rows = parseInt(prompt('Rows:', '3')) || 3;
-  const cols = parseInt(prompt('Columns:', '3')) || 3;
-  let html = '<table>';
-  for (let r = 0; r < rows; r++) {
-    html += '<tr>';
-    for (let c = 0; c < cols; c++) {
-      html += r === 0 ? '<th>Header</th>' : '<td>&nbsp;</td>';
+      // Nav chip
+      const avatar = document.getElementById('user-avatar-nav');
+      if (user.photoURL) {
+        avatar.outerHTML = `<img id="user-avatar-nav" src="${user.photoURL}" width="26" height="26" alt="" style="border-radius:50%;object-fit:cover">`;
+      } else {
+        avatar.textContent = user.displayName ? user.displayName[0].toUpperCase() : '?';
+      }
+      document.getElementById('user-chip-name').textContent = user.displayName ? user.displayName.split(' ')[0] : 'User';
+      document.getElementById('menu-user-name').textContent = user.displayName || 'User';
+      document.getElementById('menu-user-email').textContent = user.email || '';
+    } else {
+      outEl.style.display = 'block';
+      inEl.style.display = 'none';
+      signinCard.style.display = '';
     }
-    html += '</tr>';
-  }
-  html += '</table>';
-  exec('insertHTML', html);
-}
 
-// ---- TOOLBAR STATE ----
-function updateToolbarState() {
-  const cmds = ['bold','italic','underline','strikeThrough','justifyLeft','justifyCenter','justifyRight','insertUnorderedList','insertOrderedList'];
-  cmds.forEach(cmd => {
-    const btn = document.getElementById('btn-' + cmd);
-    if (btn) {
-      btn.classList.toggle('active', document.queryCommandState(cmd));
+    renderDocs();
+  });
+
+  /* ---- SIGN IN ---- */
+  function handleSignIn() { signInWithGoogle(); }
+
+  /* ---- USER MENU ---- */
+  function toggleUserMenu() {
+    const m = document.getElementById('user-menu');
+    m.style.display = m.style.display === 'none' ? 'block' : 'none';
+  }
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#user-chip') && !e.target.closest('#user-menu')) {
+      const m = document.getElementById('user-menu');
+      if (m) m.style.display = 'none';
     }
   });
-}
 
-editor.addEventListener('keyup', updateToolbarState);
-editor.addEventListener('mouseup', updateToolbarState);
-editor.addEventListener('touchend', updateToolbarState);
-
-// ---- WORD COUNT ----
-function updateCounts() {
-  const text = editor.innerText || '';
-  const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).filter(w => w.length).length;
-  const chars = text.length;
-  const readMin = Math.max(1, Math.round(words / 200));
-  document.getElementById('word-count').textContent = words;
-  document.getElementById('char-count').textContent = chars;
-  document.getElementById('read-time').textContent = readMin;
-}
-
-// ---- FIND/REPLACE ----
-function toggleFind() {
-  const bar = document.getElementById('find-bar');
-  bar.classList.toggle('open');
-  if (bar.classList.contains('open')) document.getElementById('find-input').focus();
-  else clearHighlights();
-}
-
-function findKeydown(e) {
-  if (e.key === 'Enter') { e.shiftKey ? findPrev() : findNext(); }
-  if (e.key === 'Escape') toggleFind();
-  setTimeout(doFind, 0);
-}
-
-document.getElementById('find-input').addEventListener('input', doFind);
-
-function doFind() {
-  clearHighlights();
-  findMatches = [];
-  findIndex = 0;
-  const term = document.getElementById('find-input').value;
-  if (!term) { document.getElementById('find-count').textContent = ''; return; }
-  const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
-  const ranges = [];
-  let node;
-  while (node = walker.nextNode()) {
-    let idx = 0;
-    const text = node.textContent.toLowerCase();
-    const t = term.toLowerCase();
-    while ((idx = text.indexOf(t, idx)) !== -1) {
-      const range = document.createRange();
-      range.setStart(node, idx);
-      range.setEnd(node, idx + term.length);
-      ranges.push(range);
-      idx += term.length;
-    }
+  /* ---- DOCUMENTS ---- */
+  function newDocument() {
+    const id = createNewDoc();
+    setCurrentDocId(id);
+    window.location.href = 'editor.html';
   }
-  findMatches = ranges;
-  document.getElementById('find-count').textContent = ranges.length ? `${findIndex + 1} of ${ranges.length}` : 'No results';
-  if (ranges.length) highlightMatch(0);
-}
 
-function highlightMatch(i) {
-  if (!findMatches.length) return;
-  findIndex = ((i % findMatches.length) + findMatches.length) % findMatches.length;
-  const sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(findMatches[findIndex]);
-  findMatches[findIndex].startContainer.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  document.getElementById('find-count').textContent = `${findIndex + 1} of ${findMatches.length}`;
-}
-
-function findNext() { highlightMatch(findIndex + 1); }
-function findPrev() { highlightMatch(findIndex - 1); }
-function clearHighlights() { window.getSelection().removeAllRanges(); }
-
-function replaceOne() {
-  if (!findMatches.length) return;
-  const replacement = document.getElementById('replace-input').value;
-  const sel = window.getSelection();
-  if (sel.rangeCount) {
-    sel.getRangeAt(0).deleteContents();
-    sel.getRangeAt(0).insertNode(document.createTextNode(replacement));
+  function openDocument(id) {
+    setCurrentDocId(id);
+    window.location.href = 'editor.html';
   }
-  doFind();
-}
 
-function replaceAll() {
-  const term = document.getElementById('find-input').value;
-  const replacement = document.getElementById('replace-input').value;
-  if (!term) return;
-  editor.innerHTML = editor.innerHTML.replace(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), replacement);
-  doFind();
-  scheduleSave();
-}
-
-// ---- SHARE ----
-function openShare() {
-  saveDoc();
-  const data = { title: titleInput.value, html: editor.innerHTML };
-  const encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(data)))));
-  const url = window.location.origin + window.location.pathname + '?d=' + encoded;
-  document.getElementById('share-url-input').value = url;
-  openModal('share-modal');
-}
-
-function copyShareLink() {
-  const input = document.getElementById('share-url-input');
-  input.select();
-  navigator.clipboard.writeText(input.value).then(() => showToast('Link copied')).catch(() => {
-    document.execCommand('copy');
-    showToast('Link copied');
-  });
-}
-
-// ---- EXPORT ----
-function openExport() { openModal('export-modal'); }
-
-function exportHTML() {
-  const title = titleInput.value || 'document';
-  const content = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>${title}</title>
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-body { font-family: 'Lora', serif; max-width: 720px; margin: 60px auto; padding: 0 32px; font-size: 17px; line-height: 1.85; color: #1a1814; }
-h1,h2,h3 { font-weight: 600; }
-a { color: #2d4a3e; }
-blockquote { border-left: 3px solid #2d4a3e; padding-left: 1em; color: #5a5751; font-style: italic; }
-table { border-collapse: collapse; width: 100%; } td,th { border: 1px solid #ddd; padding: 8px 12px; }
-pre { background: #f5f5f5; padding: 12px; border-radius: 6px; overflow-x: auto; }
-</style>
-</head>
-<body>
-<h1 style="font-size:2.2em;margin-bottom:32px">${title}</h1>
-${editor.innerHTML}
-</body></html>`;
-  download(content, title + '.html', 'text/html');
-  closeModal('export-modal');
-}
-
-function exportTXT() {
-  const title = titleInput.value || 'document';
-  download((title ? title + '\n\n' : '') + (editor.innerText || ''), title + '.txt', 'text/plain');
-  closeModal('export-modal');
-}
-
-function copyMarkdown() {
-  // Basic HTML-to-Markdown conversion
-  let text = editor.innerHTML;
-  text = text.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n');
-  text = text.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n');
-  text = text.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n');
-  text = text.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**');
-  text = text.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**');
-  text = text.replace(/<em[^>]*>(.*?)<\/em>/gi, '_$1_');
-  text = text.replace(/<i[^>]*>(.*?)<\/i>/gi, '_$1_');
-  text = text.replace(/<a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi, '[$2]($1)');
-  text = text.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n');
-  text = text.replace(/<blockquote[^>]*>(.*?)<\/blockquote>/gi, '> $1\n');
-  text = text.replace(/<br\s*\/?>/gi, '\n');
-  text = text.replace(/<p[^>]*>/gi, '').replace(/<\/p>/gi, '\n\n');
-  text = text.replace(/<[^>]+>/g, '');
-  text = text.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&nbsp;/g,' ').replace(/&quot;/g,'"');
-  navigator.clipboard.writeText(text).then(() => showToast('Markdown copied'));
-  closeModal('export-modal');
-}
-
-function download(content, filename, type) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([content], { type }));
-  a.download = filename;
-  a.click();
-}
-
-// ---- MODAL ----
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
-});
-
-// ---- TOAST ----
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
-}
-
-// ---- CONTEXT MENU ----
-const ctxMenu = document.getElementById('context-menu');
-editor.addEventListener('contextmenu', e => {
-  e.preventDefault();
-  ctxMenu.style.display = 'block';
-  const x = Math.min(e.clientX, window.innerWidth - 180);
-  const y = Math.min(e.clientY, window.innerHeight - 200);
-  ctxMenu.style.left = x + 'px';
-  ctxMenu.style.top = y + 'px';
-});
-document.addEventListener('click', () => { ctxMenu.style.display = 'none'; });
-document.addEventListener('touchstart', () => { ctxMenu.style.display = 'none'; }, { passive: true });
-
-// ---- KEYBOARD SHORTCUTS ----
-document.addEventListener('keydown', e => {
-  if ((e.metaKey || e.ctrlKey)) {
-    switch(e.key.toLowerCase()) {
-      case 's': e.preventDefault(); saveDoc(); showToast('Saved'); break;
-      case 'f': e.preventDefault(); toggleFind(); break;
-      case 'p': e.preventDefault(); window.print(); break;
-    }
-  }
-});
-
-// iPad: prevent zooming on double tap
-let lastTap = 0;
-document.addEventListener('touchend', e => {
-  const now = Date.now();
-  if (now - lastTap < 300) e.preventDefault();
-  lastTap = now;
-}, { passive: false });
-
-// ---- AUTO PARAGRAPH ----
-editor.addEventListener('keydown', e => {
-  if (e.key === 'Tab') {
+  function askDelete(e, id) {
+    e.stopPropagation();
     e.preventDefault();
-    exec('insertHTML', '&nbsp;&nbsp;&nbsp;&nbsp;');
+    pendingDeleteId = id;
+    document.getElementById('delete-modal').classList.add('open');
   }
-});
 
-// On paste, clean up
-editor.addEventListener('paste', e => {
-  e.preventDefault();
-  const text = (e.clipboardData || window.clipboardData).getData('text/plain');
-  exec('insertText', text);
-});
+  function confirmDelete() {
+    if (pendingDeleteId) {
+      deleteDoc(pendingDeleteId);
+      pendingDeleteId = null;
+      closeModal('delete-modal');
+      renderDocs();
+      showToast('Document deleted');
+    }
+  }
 
-// Initial count
-updateCounts();
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(o => {
+    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+  });
+
+  /* ---- RENDER DOCS ---- */
+  function renderDocs() {
+    const grid = document.getElementById('docs-grid');
+    const docs = getAllDocs();
+    const sorted = Object.values(docs).sort((a, b) => new Date(b.updated) - new Date(a.updated));
+
+    let html = `
+      <div class="doc-card new-doc-card" style="animation-delay:0s" onclick="newDocument()">
+        <span style="font-size:28px">✦</span>
+        <span>New document</span>
+      </div>`;
+
+    if (sorted.length === 0) {
+      html += `<div class="empty-state" style="animation-delay:0.1s;opacity:1">
+        <div class="empty-state-icon">📄</div>
+        <div>No documents yet.<br>Create one to get started!</div>
+      </div>`;
+    } else {
+      sorted.forEach((doc, i) => {
+        const title = doc.title || 'Untitled document';
+        const preview = htmlToText(doc.html || '').slice(0, 80) || 'Empty document';
+        const words = wordCount(htmlToText(doc.html || ''));
+        const delay = (i + 1) * 0.06;
+        html += `
+          <div class="doc-card" style="animation-delay:${delay}s" onclick="openDocument('${doc.id}')">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span class="doc-card-icon">📄</span>
+              <button onclick="askDelete(event,'${doc.id}')" title="Delete" style="background:none;border:none;cursor:pointer;color:var(--ink-3);font-size:16px;padding:2px 4px;border-radius:4px;transition:color 0.15s" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--ink-3)'">×</button>
+            </div>
+            <div class="doc-card-title" title="${title}">${escapeHtml(title)}</div>
+            <div class="doc-card-preview">${escapeHtml(preview)}</div>
+            <div class="doc-card-meta">${relativeTime(doc.updated)} · ${words} words</div>
+          </div>`;
+      });
+    }
+    grid.innerHTML = html;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ---- LOGO ANIMATION ---- */
+  setTimeout(() => {
+    document.querySelectorAll('.folio-logo-mark svg, .hero-logo-mark').forEach(el => el.classList.add('logo-animate'));
+  }, 200);
+
+  // Run initial render (before auth fires)
+  renderDocs();
 </script>
 </body>
 </html>
