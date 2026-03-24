@@ -2,798 +2,1041 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HOW RETARDED ARE YOU</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>BoardNotes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Fira+Code:wght@300;400;500&display=swap');
-
   :root {
-    --bg:         #040609;
-    --glass-bg:   rgba(8, 12, 22, 0.65);
-    --glass-edge: rgba(120, 150, 255, 0.12);
-    --glass-glow: rgba(60, 100, 255, 0.07);
-    --crimson:    #bb2211;
-    --ember:      #dd3300;
-    --azure:      #3366ff;
-    --violet:     #7744dd;
-    --frost:      rgba(190, 210, 255, 0.85);
-    --mist:       rgba(160, 180, 220, 0.45);
-    --steel:      #556688;
-    --bone:       #ccc4b4;
-    --teal:       #00ccbb;
-    --gold:       #cc9933;
-    --silver:     #7788aa;
-    --dim:        rgba(255,255,255,0.06);
+    --bg: #0a0a0c;
+    --surface: rgba(255,255,255,0.04);
+    --surface-hover: rgba(255,255,255,0.07);
+    --glass: rgba(18,18,22,0.72);
+    --glass-border: rgba(255,255,255,0.09);
+    --glass-border-bright: rgba(255,255,255,0.18);
+    --accent: #c8f0a0;
+    --accent-dim: rgba(200,240,160,0.18);
+    --accent-glow: rgba(200,240,160,0.08);
+    --text: rgba(255,255,255,0.88);
+    --text-dim: rgba(255,255,255,0.38);
+    --text-muted: rgba(255,255,255,0.18);
+    --danger: rgba(255,100,100,0.75);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --panel-gap: 12px;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-  html { background: var(--bg); scroll-behavior: smooth; }
-
-  body {
+  html, body {
+    width: 100%; height: 100%;
     background: var(--bg);
-    min-height: 100vh;
-    overflow-x: hidden;
-    font-family: 'Fira Code', monospace;
-    color: var(--bone);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* Noise grain */
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; opacity: 0.5;
+  }
+
+  /* Ambient glow */
   body::after {
     content: '';
     position: fixed;
-    inset: -50%;
-    width: 200%;
-    height: 200%;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    top: -20%; left: 50%; transform: translateX(-50%);
+    width: 70vw; height: 50vh;
+    background: radial-gradient(ellipse, rgba(200,240,160,0.04) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  #app {
+    position: relative; z-index: 1;
+    width: 100vw; height: 100vh;
+    display: flex; flex-direction: column;
+    padding: 14px var(--panel-gap) var(--panel-gap);
+    gap: var(--panel-gap);
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 44px; flex-shrink: 0;
+    padding: 0 4px;
+  }
+
+  .logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 300; letter-spacing: 0.04em;
+    color: var(--text);
+  }
+  .logo span { color: var(--accent); font-style: italic; }
+
+  .header-actions {
+    display: flex; gap: 8px; align-items: center;
+  }
+
+  .pill-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--glass-border);
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: 0.06em;
+    padding: 7px 14px; border-radius: 100px;
+    cursor: pointer; transition: all 0.2s ease;
+    backdrop-filter: blur(12px);
+    white-space: nowrap;
+  }
+  .pill-btn:hover { background: var(--surface-hover); border-color: var(--glass-border-bright); color: var(--text); }
+  .pill-btn.accent {
+    background: var(--accent-dim); border-color: rgba(200,240,160,0.35);
+    color: var(--accent);
+  }
+  .pill-btn.accent:hover { background: rgba(200,240,160,0.28); }
+  .pill-btn svg { width: 13px; height: 13px; }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    flex: 1; display: flex; gap: var(--panel-gap);
+    min-height: 0;
+  }
+
+  /* ── LEFT PANEL ── */
+  .left-panel {
+    display: flex; flex-direction: column; gap: var(--panel-gap);
+    width: 52%; flex-shrink: 0;
+  }
+
+  /* ── PHOTO VIEWER ── */
+  .photo-viewer {
+    flex: 1;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    backdrop-filter: blur(20px);
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 0;
+  }
+
+  .photo-viewer .empty-state {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
     pointer-events: none;
-    z-index: 998;
-    opacity: 0.05;
-    animation: grain 0.8s steps(1) infinite;
   }
-  @keyframes grain {
-    0%,100%{transform:translate(0,0)} 20%{transform:translate(-2%,-2%)} 40%{transform:translate(2%,1%)} 60%{transform:translate(-1%,3%)} 80%{transform:translate(3%,-1%)}
+  .photo-viewer .empty-state svg { opacity: 0.15; width: 48px; height: 48px; }
+  .photo-viewer .empty-state p {
+    font-size: 12px; color: var(--text-muted); letter-spacing: 0.08em;
   }
 
-  /* Orbs */
-  .bg-orb { position: fixed; border-radius: 50%; filter: blur(140px); pointer-events: none; z-index: 0; }
-  #orb1 { width:700px; height:700px; background:radial-gradient(circle,rgba(40,60,200,0.18) 0%,transparent 70%); top:-180px; left:-180px; animation:orbDrift1 28s ease-in-out infinite; }
-  #orb2 { width:500px; height:500px; background:radial-gradient(circle,rgba(100,30,180,0.14) 0%,transparent 70%); bottom:-80px; right:-100px; animation:orbDrift2 22s ease-in-out infinite; }
-  #orb3 { width:400px; height:400px; background:radial-gradient(circle,rgba(180,20,20,0.08) 0%,transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%); animation:orbDrift3 35s ease-in-out infinite; }
-  @keyframes orbDrift1{0%,100%{transform:translate(0,0)}50%{transform:translate(100px,80px)}}
-  @keyframes orbDrift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-80px,-60px)}}
-  @keyframes orbDrift3{0%,100%{transform:translate(-50%,-50%)}33%{transform:translate(-40%,-60%)}66%{transform:translate(-60%,-40%)}}
+  #photo-display {
+    width: 100%; height: 100%; object-fit: contain;
+    display: none;
+    touch-action: none;
+    cursor: zoom-in;
+    transition: transform 0.1s ease;
+    transform-origin: center center;
+  }
 
-  /* ─── LAYOUT ─────────────────────────────────────────────── */
-  .screen {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    min-height: 100vh;
-    display: flex;
+  /* zoom indicator */
+  .zoom-badge {
+    position: absolute; bottom: 12px; right: 12px;
+    background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    border-radius: 100px; padding: 4px 10px;
+    font-size: 10px; color: var(--text-dim); letter-spacing: 0.06em;
+    display: none;
+    transition: opacity 0.3s;
+  }
+
+  /* ── CAMERA OVERLAY ── */
+  #camera-overlay {
+    position: absolute; inset: 0;
+    display: none;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.5s cubic-bezier(0.22,1,0.36,1), transform 0.5s cubic-bezier(0.22,1,0.36,1);
-    pointer-events: none;
+    align-items: center; justify-content: center;
+    background: #000;
+    border-radius: var(--radius);
+    overflow: hidden;
   }
-  .screen.active {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: all;
-  }
-  .screen.exit {
-    opacity: 0;
-    transform: translateY(-20px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
+  #camera-overlay.active { display: flex; }
+
+  #camera-video {
+    width: 100%; height: 100%; object-fit: cover;
   }
 
-  /* ─── GLASS CARD ─────────────────────────────────────────── */
-  .card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(28px) saturate(160%);
-    -webkit-backdrop-filter: blur(28px) saturate(160%);
-    border: 1px solid var(--glass-edge);
-    border-radius: 12px;
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.05) inset,
-      0 8px 60px rgba(0,0,0,0.7),
-      0 0 100px var(--glass-glow);
-    padding: 48px 52px;
-    max-width: 680px;
-    width: 100%;
+  .camera-controls {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 20px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 28px;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
   }
 
-  /* ─── TYPOGRAPHY ─────────────────────────────────────────── */
-  .eyebrow {
-    font-size: 0.58rem;
-    letter-spacing: 0.4em;
-    text-transform: uppercase;
-    color: var(--steel);
-    margin-bottom: 18px;
-    font-weight: 300;
+  .shutter-btn {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    border: 3px solid rgba(255,255,255,0.5);
+    cursor: pointer; transition: transform 0.1s, background 0.1s;
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.15);
+    flex-shrink: 0;
+    position: relative;
+  }
+  .shutter-btn:active { transform: scale(0.92); background: var(--accent); }
+
+  .cam-cancel-btn {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(0,0,0,0.45); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 100px;
+    color: rgba(255,255,255,0.75); font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: 0.05em;
+    padding: 6px 14px; cursor: pointer;
   }
 
-  h1.title {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(1.4rem, 5vw, 2.6rem);
-    font-weight: 900;
-    letter-spacing: 0.04em;
-    line-height: 1.15;
-    color: rgba(210,220,255,0.95);
-    text-shadow: 0 0 60px rgba(80,120,255,0.25);
-    margin-bottom: 16px;
+  /* ── THUMBNAIL STRIP ── */
+  .thumb-strip {
+    height: 76px; flex-shrink: 0;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    backdrop-filter: blur(20px);
+    display: flex; align-items: center;
+    padding: 0 10px; gap: 8px;
+    overflow-x: auto; overflow-y: hidden;
+  }
+  .thumb-strip::-webkit-scrollbar { height: 3px; }
+  .thumb-strip::-webkit-scrollbar-track { background: transparent; }
+  .thumb-strip::-webkit-scrollbar-thumb { background: var(--glass-border-bright); border-radius: 2px; }
+
+  .thumb-strip .empty-label {
+    font-size: 11px; color: var(--text-muted); letter-spacing: 0.06em;
+    white-space: nowrap; padding-left: 4px;
   }
 
-  h2.q-title {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(1rem, 3vw, 1.4rem);
-    font-weight: 600;
-    color: rgba(200,215,255,0.9);
-    line-height: 1.4;
-    margin-bottom: 28px;
+  .thumb {
+    width: 54px; height: 54px; flex-shrink: 0;
+    border-radius: 8px; object-fit: cover;
+    border: 1.5px solid var(--glass-border);
+    cursor: pointer; transition: all 0.2s;
+    opacity: 0.65;
+  }
+  .thumb:hover { opacity: 1; border-color: var(--glass-border-bright); }
+  .thumb.active { opacity: 1; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+
+  .thumb-wrapper {
+    position: relative; flex-shrink: 0;
+  }
+  .thumb-delete {
+    position: absolute; top: -5px; right: -5px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: rgba(30,30,30,0.9); border: 1px solid rgba(255,100,100,0.4);
+    color: var(--danger); font-size: 9px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; opacity: 0; transition: opacity 0.15s;
+  }
+  .thumb-wrapper:hover .thumb-delete { opacity: 1; }
+
+  /* ── RIGHT PANEL — NOTES ── */
+  .right-panel {
+    flex: 1; display: flex; flex-direction: column; gap: 0;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    backdrop-filter: blur(20px);
+    overflow: hidden; min-height: 0;
+  }
+
+  .notes-header {
+    padding: 14px 18px 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--glass-border);
+    flex-shrink: 0;
+  }
+
+  .notes-title-input {
+    background: none; border: none; outline: none;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px; font-weight: 400;
+    color: var(--text); width: 100%;
     letter-spacing: 0.02em;
   }
+  .notes-title-input::placeholder { color: var(--text-muted); }
 
-  .subtitle {
-    font-size: 0.78rem;
-    color: var(--mist);
-    line-height: 1.7;
-    margin-bottom: 32px;
-    font-weight: 300;
-  }
-
-  /* ─── DIVIDER ────────────────────────────────────────────── */
-  .divider {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 24px 0;
-  }
-  .divider::before, .divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(120,150,255,0.2), transparent);
-  }
-  .divider span {
-    font-size: 0.5rem;
-    letter-spacing: 0.5em;
-    color: var(--steel);
+  .notes-meta {
+    font-size: 10px; color: var(--text-muted); letter-spacing: 0.06em;
+    white-space: nowrap; padding-left: 12px;
+    flex-shrink: 0;
   }
 
-  /* ─── PROGRESS ───────────────────────────────────────────── */
-  .progress-wrap {
-    margin-bottom: 32px;
-  }
-  .progress-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.58rem;
-    letter-spacing: 0.3em;
-    color: var(--steel);
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-  .progress-bar {
-    height: 2px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--azure), var(--violet));
-    border-radius: 2px;
-    transition: width 0.6s cubic-bezier(0.22,1,0.36,1);
-    box-shadow: 0 0 8px rgba(80,120,255,0.5);
-  }
-
-  /* ─── OPTIONS ────────────────────────────────────────────── */
-  .options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .option-btn {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 8px;
-    padding: 14px 20px;
-    cursor: pointer;
-    font-family: 'Fira Code', monospace;
-    font-size: 0.82rem;
-    color: var(--bone);
-    text-align: left;
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
-    line-height: 1.4;
-    font-weight: 400;
-  }
-  .option-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(80,120,255,0.08), transparent);
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-  .option-btn:hover {
-    border-color: rgba(120,160,255,0.3);
-    color: rgba(210,225,255,0.95);
-    transform: translateX(4px);
-    box-shadow: 0 0 20px rgba(60,100,255,0.1), inset 0 0 20px rgba(60,100,255,0.04);
-  }
-  .option-btn:hover::before { opacity: 1; }
-  .option-btn.selected {
-    border-color: rgba(120,160,255,0.5);
-    background: rgba(80,120,255,0.1);
-    color: rgba(210,225,255,0.98);
-    box-shadow: 0 0 30px rgba(60,100,255,0.15);
-  }
-  .option-letter {
-    display: inline-block;
-    font-size: 0.58rem;
-    letter-spacing: 0.2em;
-    color: var(--steel);
-    margin-right: 10px;
-    text-transform: uppercase;
-    font-weight: 500;
-    transition: color 0.2s;
-  }
-  .option-btn:hover .option-letter,
-  .option-btn.selected .option-letter { color: rgba(120,160,255,0.9); }
-
-  /* ─── BUTTONS ────────────────────────────────────────────── */
-  .btn {
-    display: inline-block;
-    font-family: 'Fira Code', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    padding: 14px 36px;
-    border-radius: 6px;
-    cursor: pointer;
-    border: none;
-    font-weight: 500;
-    transition: all 0.25s ease;
-    position: relative;
-    overflow: hidden;
-  }
-  .btn::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(255,255,255,0.06);
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-  .btn:hover::after { opacity: 1; }
-
-  .btn-primary {
-    background: linear-gradient(135deg, rgba(50,90,220,0.6), rgba(100,50,200,0.6));
-    color: rgba(220,230,255,0.95);
-    border: 1px solid rgba(120,160,255,0.3);
-    box-shadow: 0 4px 30px rgba(50,90,220,0.25), 0 1px 0 rgba(255,255,255,0.08) inset;
-  }
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 40px rgba(50,90,220,0.4), 0 1px 0 rgba(255,255,255,0.1) inset;
-  }
-  .btn-primary:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  .btn-ghost {
-    background: rgba(255,255,255,0.04);
-    color: var(--silver);
-    border: 1px solid rgba(255,255,255,0.08);
-  }
-  .btn-ghost:hover {
-    color: var(--bone);
-    border-color: rgba(255,255,255,0.15);
-    transform: translateY(-1px);
-  }
-
-  .btn-danger {
-    background: linear-gradient(135deg, rgba(187,34,17,0.5), rgba(120,20,20,0.5));
-    color: rgba(255,200,190,0.9);
-    border: 1px solid rgba(200,60,40,0.3);
-    box-shadow: 0 4px 30px rgba(150,20,10,0.2);
-  }
-  .btn-danger:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 40px rgba(150,20,10,0.35);
-  }
-
-  .btn-row {
-    display: flex;
-    gap: 12px;
-    margin-top: 28px;
+  .notes-toolbar {
+    padding: 8px 14px;
+    display: flex; align-items: center; gap: 4px;
+    border-bottom: 1px solid var(--glass-border);
+    flex-shrink: 0;
     flex-wrap: wrap;
   }
 
-  /* ─── RESULT ─────────────────────────────────────────────── */
-  .result-score {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(3rem, 12vw, 6rem);
-    font-weight: 900;
-    line-height: 1;
-    margin: 16px 0;
-    background: linear-gradient(135deg, var(--azure), var(--violet), var(--crimson));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    filter: drop-shadow(0 0 30px rgba(80,120,255,0.3));
-    animation: scorePop 0.6s cubic-bezier(0.22,1,0.36,1) both;
+  .tool-btn {
+    padding: 5px 10px; border-radius: 6px;
+    background: none; border: none;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.04em;
+    cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; gap: 5px;
   }
-  @keyframes scorePop {
-    from { transform: scale(0.5); opacity: 0; }
-    to   { transform: scale(1);   opacity: 1; }
+  .tool-btn:hover { background: var(--surface-hover); color: var(--text); }
+  .tool-btn svg { width: 13px; height: 13px; }
+  .tool-btn.active { background: var(--accent-dim); color: var(--accent); }
+
+  .tool-divider {
+    width: 1px; height: 16px;
+    background: var(--glass-border); margin: 0 4px;
   }
 
-  .result-label {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(0.9rem, 2.5vw, 1.2rem);
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 20px;
-    color: rgba(210,220,255,0.9);
+  #notes-area {
+    flex: 1; min-height: 0;
+    resize: none; border: none; outline: none;
+    background: transparent;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px; line-height: 1.8;
+    padding: 18px 20px;
+    letter-spacing: 0.02em;
+    overflow-y: auto;
+    caret-color: var(--accent);
+  }
+  #notes-area::placeholder { color: var(--text-muted); }
+  #notes-area::-webkit-scrollbar { width: 4px; }
+  #notes-area::-webkit-scrollbar-track { background: transparent; }
+  #notes-area::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
+
+  /* formatted editing */
+  #notes-area b { color: var(--accent); }
+  #notes-area i { opacity: 0.75; }
+
+  .notes-footer {
+    padding: 10px 18px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid var(--glass-border);
+    flex-shrink: 0;
   }
 
-  .result-desc {
-    font-size: 0.82rem;
-    line-height: 1.8;
-    color: var(--mist);
-    font-weight: 300;
+  .word-count {
+    font-size: 10px; color: var(--text-muted); letter-spacing: 0.06em;
   }
 
-  .result-badge {
-    display: inline-block;
-    font-size: clamp(2rem, 8vw, 3.5rem);
-    margin-bottom: 8px;
-    animation: badgeFloat 3s ease-in-out infinite;
+  /* ── SESSIONS SIDEBAR ── */
+  .sessions-drawer {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: 300px;
+    background: rgba(10,10,14,0.92);
+    backdrop-filter: blur(30px);
+    border-right: 1px solid var(--glass-border);
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    display: flex; flex-direction: column;
+    padding: 20px 0;
   }
-  @keyframes badgeFloat {
-    0%,100% { transform: translateY(0); }
-    50%      { transform: translateY(-6px); }
+  .sessions-drawer.open { transform: translateX(0); }
+
+  .drawer-header {
+    padding: 0 20px 16px;
+    border-bottom: 1px solid var(--glass-border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .drawer-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px; font-weight: 300;
+    letter-spacing: 0.04em;
+  }
+  .drawer-close {
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; padding: 4px;
+  }
+  .drawer-close svg { width: 16px; height: 16px; }
+
+  .sessions-list {
+    flex: 1; overflow-y: auto; padding: 12px 12px;
+  }
+  .sessions-list::-webkit-scrollbar { width: 3px; }
+  .sessions-list::-webkit-scrollbar-thumb { background: var(--glass-border); }
+
+  .session-item {
+    padding: 12px 14px; border-radius: var(--radius-sm);
+    cursor: pointer; transition: background 0.15s;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+  }
+  .session-item:hover { background: var(--surface-hover); border-color: var(--glass-border); }
+  .session-item.active { background: var(--accent-dim); border-color: rgba(200,240,160,0.25); }
+  .session-item .s-title {
+    font-size: 13px; color: var(--text); margin-bottom: 4px;
+    font-family: 'Cormorant Garamond', serif; font-size: 15px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .session-item .s-meta {
+    font-size: 10px; color: var(--text-muted); letter-spacing: 0.05em;
+    display: flex; gap: 10px;
   }
 
-  .stat-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    font-size: 0.72rem;
+  .new-session-btn {
+    margin: 0 12px 12px;
+    padding: 11px; border-radius: var(--radius-sm);
+    background: var(--surface); border: 1px dashed var(--glass-border);
+    color: var(--text-dim); font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: 0.06em;
+    cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
   }
-  .stat-row:last-child { border-bottom: none; }
-  .stat-key { color: var(--steel); letter-spacing: 0.15em; text-transform: uppercase; }
-  .stat-val { color: var(--bone); font-weight: 500; }
+  .new-session-btn:hover { background: var(--surface-hover); border-color: var(--glass-border-bright); color: var(--text); }
 
-  /* ─── AGE GATE ───────────────────────────────────────────── */
-  .warning-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(187,34,17,0.12);
-    border: 1px solid rgba(187,34,17,0.25);
-    border-radius: 4px;
-    padding: 8px 16px;
-    font-size: 0.62rem;
-    letter-spacing: 0.3em;
-    color: rgba(255,130,110,0.8);
-    text-transform: uppercase;
-    margin-bottom: 24px;
+  /* drawer scrim */
+  .scrim {
+    position: fixed; inset: 0; z-index: 99;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(2px);
+    display: none;
   }
-  .warning-dot {
-    width: 5px; height: 5px;
-    background: var(--ember);
-    border-radius: 50%;
-    animation: warningPulse 1.5s ease-in-out infinite;
+  .scrim.visible { display: block; }
+
+  /* ── EXPORT TOAST ── */
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: rgba(18,18,22,0.95); backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border-bright);
+    border-radius: 100px; padding: 10px 22px;
+    font-size: 12px; color: var(--text); letter-spacing: 0.05em;
+    z-index: 200; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    white-space: nowrap;
   }
-  @keyframes warningPulse {
-    0%,100% { opacity:1; transform:scale(1); }
-    50% { opacity:0.4; transform:scale(0.7); }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── PINCH ZOOM HINT ── */
+  .zoom-hint {
+    position: absolute; bottom: 12px; left: 12px;
+    background: rgba(0,0,0,0.45); backdrop-filter: blur(6px);
+    border: 1px solid var(--glass-border);
+    border-radius: 100px; padding: 4px 10px;
+    font-size: 10px; color: var(--text-muted); letter-spacing: 0.04em;
+    pointer-events: none;
+    transition: opacity 0.5s;
   }
 
-  /* ─── SCROLLBAR ──────────────────────────────────────────── */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: rgba(80,100,200,0.3); border-radius: 2px; }
+  /* ── FOCUS MODE ── */
+  #app.focus-left .right-panel { display: none; }
+  #app.focus-left .left-panel { width: 100%; }
+  #app.focus-right .left-panel { display: none; }
+  #app.focus-right .right-panel { flex: 1; }
 
-  /* ─── CATEGORY TAGS ──────────────────────────────────────── */
-  .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
-  .tag {
-    font-size: 0.58rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    padding: 4px 12px;
-    border-radius: 3px;
-    font-weight: 500;
+  /* ripple on shutter */
+  @keyframes shutterFlash {
+    0% { opacity: 0; }
+    10% { opacity: 0.4; }
+    100% { opacity: 0; }
   }
-  .tag-low    { background: rgba(0,200,150,0.1);  border: 1px solid rgba(0,200,150,0.2);  color: rgba(0,200,150,0.8); }
-  .tag-mid    { background: rgba(50,100,255,0.1);  border: 1px solid rgba(50,100,255,0.2);  color: rgba(100,160,255,0.8); }
-  .tag-high   { background: rgba(200,100,0,0.1);   border: 1px solid rgba(200,100,0,0.2);   color: rgba(255,160,60,0.8); }
-  .tag-apex   { background: rgba(187,34,17,0.1);   border: 1px solid rgba(187,34,17,0.2);   color: rgba(255,100,80,0.8); }
+  .flash {
+    position: absolute; inset: 0;
+    background: white; pointer-events: none;
+    animation: shutterFlash 0.35s ease-out forwards;
+    border-radius: var(--radius);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.97); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .photo-viewer, .right-panel, .thumb-strip, header {
+    animation: fadeIn 0.4s ease both;
+  }
+  header { animation-delay: 0.05s; }
+  .photo-viewer { animation-delay: 0.1s; }
+  .thumb-strip { animation-delay: 0.15s; }
+  .right-panel { animation-delay: 0.12s; }
 </style>
 </head>
 <body>
+<div id="app">
 
-<div class="bg-orb" id="orb1"></div>
-<div class="bg-orb" id="orb2"></div>
-<div class="bg-orb" id="orb3"></div>
-
-<!-- ── SCREEN 0: AGE GATE ──────────────────────────────────── -->
-<div class="screen active" id="screen-gate">
-  <div class="card" style="text-align:center;">
-    <div class="warning-badge"><span class="warning-dot"></span> Adults Only · 18+</div>
-    <div class="eyebrow">Mandatory Checkpoint</div>
-    <h1 class="title">Stop Right There</h1>
-    <div class="divider"><span>⬥</span></div>
-    <p class="subtitle">
-      This diagnostic contains crude humour, offensive language, and the kind of 
-      content that would make your primary school teacher weep. 
-      You must be 18 or older to proceed.<br><br>
-      By continuing you confirm you are a legal adult and that you understand 
-      this is satire, not a medical assessment.
-    </p>
-    <div class="btn-row" style="justify-content:center;">
-      <button class="btn btn-primary" onclick="passGate()">I am 18+ · Enter</button>
-      <button class="btn btn-danger" onclick="failGate()">I am under 18</button>
+  <!-- HEADER -->
+  <header>
+    <div class="logo">Board<span>Notes</span></div>
+    <div class="header-actions">
+      <button class="pill-btn" id="sessions-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+        </svg>
+        Sessions
+      </button>
+      <button class="pill-btn" id="camera-btn" onclick="openCamera()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+        Capture
+      </button>
+      <button class="pill-btn accent" id="export-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Export
+      </button>
     </div>
-  </div>
-</div>
+  </header>
 
-<!-- ── SCREEN 1: INTRO ─────────────────────────────────────── -->
-<div class="screen" id="screen-intro">
-  <div class="card" style="text-align:center;">
-    <div class="eyebrow">Certified Diagnostic Tool · v6.6.6</div>
-    <h1 class="title">How Retarded<br>Are You?</h1>
-    <div class="divider"><span>⬥</span></div>
-    <p class="subtitle">
-      A rigorous 10-question psychometric survey, scientifically calibrated to 
-      determine your precise level of stupidity. Results are binding. 
-      There is no appeals process. Your family will be notified.
-    </p>
-    <div style="font-size:0.65rem; color:var(--steel); letter-spacing:0.2em; line-height:1.9;">
-      · No actual intelligence is assessed<br>
-      · Results are meaningless and offensive by design<br>
-      · Average completion time: 3 minutes (5 if you're one of the subjects)
-    </div>
-    <div class="btn-row" style="justify-content:center; margin-top:32px;">
-      <button class="btn btn-primary" onclick="startQuiz()">Begin Assessment →</button>
-    </div>
-  </div>
-</div>
+  <!-- MAIN -->
+  <div class="main">
 
-<!-- ── SCREEN 2: QUESTIONS ─────────────────────────────────── -->
-<div class="screen" id="screen-quiz">
-  <div class="card">
-    <div class="progress-wrap">
-      <div class="progress-label">
-        <span id="q-counter">Question 1 of 10</span>
-        <span id="q-percent">0%</span>
+    <!-- LEFT: Camera / Photo -->
+    <div class="left-panel">
+      <div class="photo-viewer" id="photo-viewer">
+        <div class="empty-state" id="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          <p>tap capture to photograph the board</p>
+        </div>
+
+        <img id="photo-display" draggable="false" alt="Board photo">
+
+        <div class="zoom-badge" id="zoom-badge">100%</div>
+        <div class="zoom-hint" id="zoom-hint">pinch to zoom</div>
+
+        <!-- Camera overlay -->
+        <div id="camera-overlay">
+          <video id="camera-video" autoplay playsinline muted></video>
+          <button class="cam-cancel-btn" onclick="closeCamera()">Cancel</button>
+          <div class="camera-controls">
+            <button class="shutter-btn" id="shutter-btn" onclick="capturePhoto()"></button>
+          </div>
+        </div>
       </div>
-      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+
+      <!-- Thumbnail strip -->
+      <div class="thumb-strip" id="thumb-strip">
+        <span class="empty-label" id="strip-empty">No photos yet</span>
+      </div>
     </div>
-    <h2 class="q-title" id="q-text"></h2>
-    <div class="options" id="q-options"></div>
-    <div class="btn-row">
-      <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()" disabled>Next →</button>
+
+    <!-- RIGHT: Notes -->
+    <div class="right-panel">
+      <div class="notes-header">
+        <input class="notes-title-input" id="notes-title" placeholder="Session title..." maxlength="60">
+        <span class="notes-meta" id="notes-meta">—</span>
+      </div>
+
+      <div class="notes-toolbar">
+        <button class="tool-btn" onclick="formatText('bold')" title="Bold">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>
+          Bold
+        </button>
+        <button class="tool-btn" onclick="formatText('italic')" title="Italic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+          Italic
+        </button>
+        <div class="tool-divider"></div>
+        <button class="tool-btn" onclick="insertLine('— ')" title="List item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          List
+        </button>
+        <button class="tool-btn" onclick="insertLine('## ')" title="Heading">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M4 6h16M4 18h10"/></svg>
+          Heading
+        </button>
+        <button class="tool-btn" onclick="insertLine('[ ] ')" title="Task">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Task
+        </button>
+        <div class="tool-divider"></div>
+        <button class="tool-btn" onclick="clearNotes()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          Clear
+        </button>
+      </div>
+
+      <textarea id="notes-area" placeholder="Start writing your notes here...&#10;&#10;The board photo is on the left — zoom in on any part you need.&#10;Pinch to zoom on the image."></textarea>
+
+      <div class="notes-footer">
+        <span class="word-count" id="word-count">0 words</span>
+        <div style="display:flex;gap:8px;">
+          <button class="pill-btn" onclick="copyNotes()" style="padding:5px 12px;font-size:10px;">Copy text</button>
+        </div>
+      </div>
     </div>
+
   </div>
 </div>
 
-<!-- ── SCREEN 3: RESULT ────────────────────────────────────── -->
-<div class="screen" id="screen-result">
-  <div class="card" style="text-align:center;">
-    <div class="eyebrow">Diagnostic Complete · Official Verdict</div>
-    <div class="result-badge" id="result-badge"></div>
-    <div class="result-score" id="result-score"></div>
-    <div class="result-label" id="result-label"></div>
-    <div class="divider"><span>⬥</span></div>
-    <p class="result-desc" id="result-desc"></p>
-    <div class="tags" style="justify-content:center;" id="result-tags"></div>
-    <div class="divider"><span>⬥</span></div>
-    <div id="result-stats" style="text-align:left; margin-bottom:8px;"></div>
-    <div class="btn-row" style="justify-content:center; margin-top:24px;">
-      <button class="btn btn-primary" onclick="restartQuiz()">Retry (won't help)</button>
-      <button class="btn btn-ghost" onclick="shareResult()">Copy Result</button>
-    </div>
-    <div id="copy-confirm" style="font-size:0.6rem;color:var(--teal);letter-spacing:0.2em;margin-top:10px;opacity:0;transition:opacity 0.3s;">Copied to clipboard ✓</div>
+<!-- Sessions Drawer -->
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<div class="sessions-drawer" id="sessions-drawer">
+  <div class="drawer-header">
+    <span class="drawer-title">Sessions</span>
+    <button class="drawer-close" onclick="closeDrawer()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
+  <button class="new-session-btn" onclick="newSession()">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    New Session
+  </button>
+  <div class="sessions-list" id="sessions-list"></div>
 </div>
 
-<!-- ── SCREEN: UNDERAGE ────────────────────────────────────── -->
-<div class="screen" id="screen-underage">
-  <div class="card" style="text-align:center;">
-    <div class="result-badge">🚫</div>
-    <h1 class="title">Go Away, Child</h1>
-    <div class="divider"><span>⬥</span></div>
-    <p class="subtitle">
-      This content is not for you. Go do your homework.<br>
-      Come back when you're older and have made worse decisions.
-    </p>
-    <div style="font-size:0.62rem;color:var(--steel);letter-spacing:0.2em;">
-      · recommended activity: minecraft<br>
-      · see you in a few years
-    </div>
-  </div>
-</div>
+<!-- Toast -->
+<div class="toast" id="toast"></div>
 
 <script>
-// ─── QUESTIONS ──────────────────────────────────────────────
-const questions = [
-  {
-    text: "You are assembling flat-pack furniture. The instructions are lost. You:",
-    options: [
-      { text: "Find a PDF of the manual online", score: 0 },
-      { text: "Wing it. You've got eyes, haven't you?", score: 1 },
-      { text: "Ask a friend who's never built furniture either", score: 2 },
-      { text: "Sit on the pile of parts and cry. That's basically a chair.", score: 3 },
-    ]
-  },
-  {
-    text: "A fire extinguisher is labelled 'Class A - Wood and Paper Fires.' Your kitchen is on fire. You:",
-    options: [
-      { text: "Check what class of fire it is before acting", score: 0 },
-      { text: "Use it. Surely fire is fire.", score: 2 },
-      { text: "Film it for TikTok first, then use it", score: 3 },
-      { text: "Pour water on it. You read online that works.", score: 1 },
-    ]
-  },
-  {
-    text: "You are due at an important meeting at 9am. It is currently 8:52am and you are still in bed. You:",
-    options: [
-      { text: "Frantically get ready and sprint — you might make it", score: 0 },
-      { text: "Lie there calculating if it's actually important", score: 1 },
-      { text: "Text 'on my way!' from bed and roll over", score: 2 },
-      { text: "Call in sick. The meeting was probably stupid anyway.", score: 3 },
-    ]
-  },
-  {
-    text: "You've been talking for 10 minutes and the person opposite you is glassy-eyed. You:",
-    options: [
-      { text: "Wrap up and ask how they're doing", score: 0 },
-      { text: "Talk louder. Maybe they're hard of hearing.", score: 2 },
-      { text: "Keep going — you were just getting to the good part", score: 3 },
-      { text: "Ask if they're okay then use their answer as a segue back to your story", score: 1 },
-    ]
-  },
-  {
-    text: "A warning says 'Do not consume.' You:",
-    options: [
-      { text: "Do not consume it", score: 0 },
-      { text: "Smell it first then decide", score: 1 },
-      { text: "Consume a small amount to see what happens", score: 2 },
-      { text: "Consume all of it immediately and update Wikipedia with results", score: 3 },
-    ]
-  },
-  {
-    text: "Your phone battery is at 2%. You have no charger. You need to make an important call in one hour. You:",
-    options: [
-      { text: "Find a charger, a power bank, or a shop immediately", score: 0 },
-      { text: "Spend 20 minutes on TikTok, then look for a charger", score: 3 },
-      { text: "Turn it off and wait — you'll make the call from 2%", score: 1 },
-      { text: "Make the call now in case the battery dies, interrupting it mid-sentence", score: 2 },
-    ]
-  },
-  {
-    text: "You are about to sign a 40-page contract. You:",
-    options: [
-      { text: "Read it, or pay someone who can", score: 0 },
-      { text: "Skim the first page and the last", score: 1 },
-      { text: "Skip to the signature page. It's fine, it's probably boilerplate.", score: 2 },
-      { text: "Sign it with an 'x' because writing your name out feels like commitment", score: 3 },
-    ]
-  },
-  {
-    text: "The WiFi isn't working. You've already restarted the router. You:",
-    options: [
-      { text: "Check for outages on your phone's data, then diagnose properly", score: 0 },
-      { text: "Restart the router again", score: 1 },
-      { text: "Restart the router eleven more times in quick succession", score: 2 },
-      { text: "Unplug everything in the house including the fridge, then restart the router", score: 3 },
-    ]
-  },
-  {
-    text: "You meet someone new. They seem important. You immediately:",
-    options: [
-      { text: "Introduce yourself, make eye contact, ask a question about them", score: 0 },
-      { text: "Tell them something impressive about yourself", score: 1 },
-      { text: "Tell them about a medical issue you have", score: 2 },
-      { text: "Blank on your own name for a full three seconds", score: 3 },
-    ]
-  },
-  {
-    text: "It is 3am. You have work at 7am. You are watching 'just one more episode.' You:",
-    options: [
-      { text: "Turn it off. Sleep is too important.", score: 0 },
-      { text: "Finish the episode then go to sleep, no matter what", score: 1 },
-      { text: "Finish the series. You can sleep when you're dead.", score: 3 },
-      { text: "Promise yourself one more episode and say this sincerely six consecutive times", score: 2 },
-    ]
-  },
-];
+// ── STATE ──
+let sessions = JSON.parse(localStorage.getItem('bn_sessions') || '[]');
+let currentSessionId = null;
+let cameraStream = null;
+let photos = []; // { id, dataUrl, timestamp }
+let activePhotoId = null;
 
-// ─── RESULTS TABLE ───────────────────────────────────────────
-const results = [
-  {
-    min: 0, max: 6,
-    badge: "🎓",
-    score: "4%",
-    label: "Functionally Intact",
-    desc: "Congratulations. You are one of approximately eleven people on Earth who actually reads instructions, retains information, and makes decisions using logic. You are insufferable at parties and probably floss daily. The rest of us despise you.",
-    tags: [{ label: "Low Risk", cls: "tag-low" }, { label: "Statistically Rare", cls: "tag-low" }],
-    stats: { "Stupidity Percentile": "Top 4%", "IQ Estimate": "Annoyingly fine", "Threat Level": "To our egos only", "Prognosis": "Excellent. Unfortunately." }
-  },
-  {
-    min: 7, max: 13,
-    badge: "🧠",
-    score: "28%",
-    label: "Mild to Moderate",
-    desc: "You are mostly functional with occasional spectacular lapses in judgment that you later describe as 'having a moment.' You make the same mistake roughly three times before learning. You have signed something you shouldn't have. You will again.",
-    tags: [{ label: "Average", cls: "tag-mid" }, { label: "Salvageable", cls: "tag-mid" }],
-    stats: { "Stupidity Percentile": "Top 28%", "IQ Estimate": "Room temperature (Celsius)", "Recurring Mistake": "Overconfidence", "Prognosis": "Could go either way." }
-  },
-  {
-    min: 14, max: 20,
-    badge: "🌀",
-    score: "61%",
-    label: "Considerable Impairment",
-    desc: "Something is wrong. Not catastrophically — you've survived this long, which is almost impressive — but you have a talent for making situations measurably worse through sheer commitment to the wrong course of action. You believe in yourself. That is the problem.",
-    tags: [{ label: "Elevated Risk", cls: "tag-high" }, { label: "Self-Assured", cls: "tag-high" }, { label: "Concerning", cls: "tag-high" }],
-    stats: { "Stupidity Percentile": "Top 61%", "IQ Estimate": "Warm bath water (Fahrenheit)", "Defining Trait": "Wrong with confidence", "Prognosis": "Seek supervision." }
-  },
-  {
-    min: 21, max: 27,
-    badge: "🔥",
-    score: "84%",
-    label: "Advanced Deficiency",
-    desc: "You are a danger to yourself and a source of entertainment to everyone within a 10-metre radius. Professionals debate whether you are deeply stupid or accidentally avant-garde. The difference has never been clinically established. You have unintentionally started at least one small fire.",
-    tags: [{ label: "High Risk", cls: "tag-apex" }, { label: "Chronically Online", cls: "tag-high" }, { label: "A Story", cls: "tag-high" }],
-    stats: { "Stupidity Percentile": "Top 84%", "IQ Estimate": "A warm Carlsberg", "Signature Move": "Wrong, loudly", "Prognosis": "Frankly impressive you made it here." }
-  },
-  {
-    min: 28, max: 999,
-    badge: "💀",
-    score: "100%",
-    label: "An Apex Specimen",
-    desc: "We have never seen numbers like this in a non-clinical setting. You are a statistical anomaly, a phenomenon — like a perfect storm, but of bad decisions. Scientists would study you if they could stop laughing. You are, without question, profoundly, magnificently, cosmically retarded. We say this with a kind of awe.",
-    tags: [{ label: "Maximum Level", cls: "tag-apex" }, { label: "Contact Authorities", cls: "tag-apex" }, { label: "Academic Interest", cls: "tag-apex" }],
-    stats: { "Stupidity Percentile": "The entire chart", "IQ Estimate": "Theoretical negative", "Risk to Others": "Immediate", "Prognosis": "Genuinely unclear how you got here." }
+// pinch zoom
+let scale = 1, lastDist = 0, translateX = 0, translateY = 0;
+let isDragging = false, lastTouchX = 0, lastTouchY = 0, touchStartX = 0, touchStartY = 0;
+const MIN_SCALE = 1, MAX_SCALE = 6;
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', () => {
+  if (sessions.length === 0) {
+    newSession(false);
+  } else {
+    loadSession(sessions[0].id);
   }
-];
+  renderSessionsList();
+  updateMeta();
+});
 
-// ─── STATE ──────────────────────────────────────────────────
-let currentQ   = 0;
-let totalScore = 0;
-let answers    = [];
-let selectedOption = null;
+// ── SESSIONS ──
+function generateId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 
-// ─── GATE ───────────────────────────────────────────────────
-function passGate() { transitionTo('screen-gate', 'screen-intro'); }
-function failGate() { transitionTo('screen-gate', 'screen-underage'); }
-
-// ─── QUIZ START ──────────────────────────────────────────────
-function startQuiz() {
-  currentQ = 0; totalScore = 0; answers = [];
-  renderQuestion();
-  transitionTo('screen-intro', 'screen-quiz');
+function newSession(open = true) {
+  const id = generateId();
+  const session = {
+    id, title: '', notes: '',
+    photos: [],
+    created: Date.now()
+  };
+  sessions.unshift(session);
+  saveSessions();
+  loadSession(id);
+  renderSessionsList();
+  if (open) { closeDrawer(); }
 }
 
-function renderQuestion() {
-  const q = questions[currentQ];
-  document.getElementById('q-text').textContent = q.text;
-  document.getElementById('q-counter').textContent = `Question ${currentQ + 1} of ${questions.length}`;
-  const pct = Math.round((currentQ / questions.length) * 100);
-  document.getElementById('q-percent').textContent = pct + '%';
-  document.getElementById('progress-fill').style.width = pct + '%';
+function loadSession(id) {
+  // save current first
+  if (currentSessionId) saveCurrentSession();
 
-  const opts = document.getElementById('q-options');
-  opts.innerHTML = '';
-  selectedOption = null;
-  document.getElementById('btn-next').disabled = true;
+  currentSessionId = id;
+  const s = sessions.find(x => x.id === id);
+  if (!s) return;
 
-  const letters = ['A','B','C','D'];
-  q.options.forEach((opt, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'option-btn';
-    btn.innerHTML = `<span class="option-letter">${letters[i]}</span>${opt.text}`;
-    btn.onclick = () => selectOption(i, opt.score, btn);
-    opts.appendChild(btn);
+  document.getElementById('notes-title').value = s.title || '';
+  document.getElementById('notes-area').value = s.notes || '';
+  photos = (s.photos || []).map(p => ({...p}));
+  activePhotoId = photos.length > 0 ? photos[photos.length - 1].id : null;
+
+  renderThumbs();
+  if (activePhotoId) showPhoto(activePhotoId);
+  else clearPhotoView();
+
+  updateMeta();
+  updateWordCount();
+  renderSessionsList();
+}
+
+function saveCurrentSession() {
+  if (!currentSessionId) return;
+  const idx = sessions.findIndex(x => x.id === currentSessionId);
+  if (idx < 0) return;
+  sessions[idx].title = document.getElementById('notes-title').value;
+  sessions[idx].notes = document.getElementById('notes-area').value;
+  sessions[idx].photos = photos.map(p => ({...p}));
+  saveSessions();
+}
+
+function saveSessions() {
+  // save without large photo data if quota issues — keep photos separate
+  try {
+    localStorage.setItem('bn_sessions', JSON.stringify(sessions));
+  } catch(e) {
+    // storage full — trim oldest photos
+    showToast('Storage full — old photos trimmed');
+  }
+}
+
+function renderSessionsList() {
+  const list = document.getElementById('sessions-list');
+  list.innerHTML = '';
+  sessions.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'session-item' + (s.id === currentSessionId ? ' active' : '');
+    const d = new Date(s.created);
+    const dateStr = d.toLocaleDateString('en-IE', { day:'numeric', month:'short' });
+    const timeStr = d.toLocaleTimeString('en-IE', { hour:'2-digit', minute:'2-digit' });
+    const photoCount = (s.photos || []).length;
+    const wordCount = s.notes ? s.notes.trim().split(/\s+/).filter(Boolean).length : 0;
+    div.innerHTML = `
+      <div class="s-title">${s.title || 'Untitled session'}</div>
+      <div class="s-meta">
+        <span>${dateStr} ${timeStr}</span>
+        <span>${photoCount} photo${photoCount !== 1 ? 's' : ''}</span>
+        <span>${wordCount}w</span>
+      </div>`;
+    div.addEventListener('click', () => { loadSession(s.id); closeDrawer(); });
+    list.appendChild(div);
   });
 }
 
-function selectOption(idx, score, btn) {
-  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  selectedOption = score;
-  document.getElementById('btn-next').disabled = false;
+// ── CAMERA ──
+async function openCamera() {
+  const overlay = document.getElementById('camera-overlay');
+  overlay.classList.add('active');
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 3840 }, height: { ideal: 2160 } },
+      audio: false
+    });
+    document.getElementById('camera-video').srcObject = cameraStream;
+  } catch(e) {
+    overlay.classList.remove('active');
+    showToast('Camera access denied — check browser settings');
+  }
 }
 
-function nextQuestion() {
-  if (selectedOption === null) return;
-  totalScore += selectedOption;
-  currentQ++;
+function closeCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  document.getElementById('camera-video').srcObject = null;
+  document.getElementById('camera-overlay').classList.remove('active');
+}
 
-  if (currentQ >= questions.length) {
-    showResult();
+function capturePhoto() {
+  const video = document.getElementById('camera-video');
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth || 1280;
+  canvas.height = video.videoHeight || 720;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+
+  // flash
+  const flash = document.createElement('div');
+  flash.className = 'flash';
+  document.getElementById('photo-viewer').appendChild(flash);
+  setTimeout(() => flash.remove(), 400);
+
+  const photo = { id: generateId(), dataUrl, timestamp: Date.now() };
+  photos.push(photo);
+  activePhotoId = photo.id;
+
+  renderThumbs();
+  showPhoto(photo.id);
+  saveCurrentSession();
+  closeCamera();
+  showToast('Photo captured');
+}
+
+// ── PHOTOS ──
+function showPhoto(id) {
+  const photo = photos.find(p => p.id === id);
+  if (!photo) return;
+  activePhotoId = id;
+  const img = document.getElementById('photo-display');
+  img.src = photo.dataUrl;
+  img.style.display = 'block';
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('zoom-hint').style.opacity = '1';
+  resetZoom();
+  renderThumbs();
+  setTimeout(() => {
+    document.getElementById('zoom-hint').style.opacity = '0';
+  }, 3000);
+}
+
+function clearPhotoView() {
+  const img = document.getElementById('photo-display');
+  img.style.display = 'none';
+  img.src = '';
+  document.getElementById('empty-state').style.display = 'flex';
+  document.getElementById('zoom-badge').style.display = 'none';
+  document.getElementById('zoom-hint').style.opacity = '0';
+}
+
+function deletePhoto(id, e) {
+  e.stopPropagation();
+  photos = photos.filter(p => p.id !== id);
+  if (activePhotoId === id) {
+    activePhotoId = photos.length > 0 ? photos[photos.length - 1].id : null;
+    if (activePhotoId) showPhoto(activePhotoId);
+    else clearPhotoView();
+  }
+  renderThumbs();
+  saveCurrentSession();
+}
+
+function renderThumbs() {
+  const strip = document.getElementById('thumb-strip');
+  const emptyLabel = document.getElementById('strip-empty');
+  strip.innerHTML = '';
+
+  if (photos.length === 0) {
+    const el = document.createElement('span');
+    el.className = 'empty-label';
+    el.id = 'strip-empty';
+    el.textContent = 'No photos yet';
+    strip.appendChild(el);
     return;
   }
 
-  // Animate out then in
-  const opts = document.getElementById('q-options');
-  const qTitle = document.getElementById('q-text');
-  [opts, qTitle].forEach(el => { el.style.opacity = '0'; el.style.transform = 'translateY(8px)'; el.style.transition = 'all 0.2s ease'; });
-  setTimeout(() => {
-    renderQuestion();
-    [opts, qTitle].forEach(el => { el.style.transition = ''; el.style.opacity = ''; el.style.transform = ''; });
-  }, 200);
-}
+  photos.forEach(p => {
+    const wrap = document.createElement('div');
+    wrap.className = 'thumb-wrapper';
 
-// ─── RESULT ──────────────────────────────────────────────────
-function showResult() {
-  const r = results.find(x => totalScore >= x.min && totalScore <= x.max);
+    const img = document.createElement('img');
+    img.className = 'thumb' + (p.id === activePhotoId ? ' active' : '');
+    img.src = p.dataUrl;
+    img.addEventListener('click', () => showPhoto(p.id));
 
-  document.getElementById('result-badge').textContent = r.badge;
-  document.getElementById('result-score').textContent  = r.score;
-  document.getElementById('result-label').textContent  = r.label;
-  document.getElementById('result-desc').textContent   = r.desc;
+    const del = document.createElement('button');
+    del.className = 'thumb-delete';
+    del.innerHTML = '✕';
+    del.addEventListener('click', (e) => deletePhoto(p.id, e));
 
-  const tagsEl = document.getElementById('result-tags');
-  tagsEl.innerHTML = r.tags.map(t => `<span class="tag ${t.cls}">${t.label}</span>`).join('');
-
-  const statsEl = document.getElementById('result-stats');
-  statsEl.innerHTML = Object.entries(r.stats).map(([k,v]) =>
-    `<div class="stat-row"><span class="stat-key">${k}</span><span class="stat-val">${v}</span></div>`
-  ).join('');
-
-  // Update progress bar to 100%
-  document.getElementById('progress-fill').style.width = '100%';
-  document.getElementById('q-percent').textContent = '100%';
-
-  transitionTo('screen-quiz', 'screen-result');
-}
-
-function restartQuiz() {
-  transitionTo('screen-result', 'screen-intro');
-}
-
-function shareResult() {
-  const score = document.getElementById('result-score').textContent;
-  const label = document.getElementById('result-label').textContent;
-  const text  = `I scored ${score} retarded (${label}) on the official diagnostic. howretardedyou.example · 18+ only`;
-  navigator.clipboard.writeText(text).then(() => {
-    const c = document.getElementById('copy-confirm');
-    c.style.opacity = '1';
-    setTimeout(() => c.style.opacity = '0', 2200);
+    wrap.appendChild(img);
+    wrap.appendChild(del);
+    strip.appendChild(wrap);
   });
 }
 
-// ─── TRANSITIONS ─────────────────────────────────────────────
-function transitionTo(fromId, toId) {
-  const from = document.getElementById(fromId);
-  const to   = document.getElementById(toId);
-  from.classList.add('exit');
-  setTimeout(() => {
-    from.classList.remove('active','exit');
-    to.classList.add('active');
-  }, 300);
+// ── PINCH ZOOM ──
+const photoViewer = document.getElementById('photo-viewer');
+const photoImg = document.getElementById('photo-display');
+
+function getDistance(t1, t2) {
+  return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
 }
+
+function applyTransform(animated) {
+  const tr = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+  photoImg.style.transition = animated ? 'transform 0.2s ease' : '';
+  photoImg.style.transform = tr;
+
+  const badge = document.getElementById('zoom-badge');
+  badge.style.display = scale > 1.05 ? 'block' : 'none';
+  badge.textContent = Math.round(scale * 100) + '%';
+}
+
+function resetZoom() {
+  scale = 1; translateX = 0; translateY = 0;
+  applyTransform(true);
+}
+
+function clampTranslation() {
+  if (scale <= 1) { translateX = 0; translateY = 0; return; }
+  const rect = photoViewer.getBoundingClientRect();
+  const maxX = (rect.width * (scale - 1)) / 2;
+  const maxY = (rect.height * (scale - 1)) / 2;
+  translateX = Math.max(-maxX, Math.min(maxX, translateX));
+  translateY = Math.max(-maxY, Math.min(maxY, translateY));
+}
+
+photoViewer.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 2) {
+    lastDist = getDistance(e.touches[0], e.touches[1]);
+    e.preventDefault();
+  } else if (e.touches.length === 1 && scale > 1) {
+    isDragging = true;
+    lastTouchX = e.touches[0].clientX;
+    lastTouchY = e.touches[0].clientY;
+    e.preventDefault();
+  }
+}, { passive: false });
+
+photoViewer.addEventListener('touchmove', (e) => {
+  if (e.touches.length === 2) {
+    const dist = getDistance(e.touches[0], e.touches[1]);
+    const delta = dist / lastDist;
+    scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale * delta));
+    lastDist = dist;
+    clampTranslation();
+    applyTransform(false);
+    e.preventDefault();
+  } else if (e.touches.length === 1 && isDragging && scale > 1) {
+    translateX += e.touches[0].clientX - lastTouchX;
+    translateY += e.touches[0].clientY - lastTouchY;
+    lastTouchX = e.touches[0].clientX;
+    lastTouchY = e.touches[0].clientY;
+    clampTranslation();
+    applyTransform(false);
+    e.preventDefault();
+  }
+}, { passive: false });
+
+photoViewer.addEventListener('touchend', (e) => {
+  isDragging = false;
+  if (scale < 1.05) resetZoom();
+});
+
+// double tap to reset
+let lastTap = 0;
+photoViewer.addEventListener('touchend', (e) => {
+  if (e.touches.length === 0) {
+    const now = Date.now();
+    if (now - lastTap < 280) {
+      if (scale > 1.1) resetZoom();
+      else { scale = 2.5; applyTransform(true); }
+    }
+    lastTap = now;
+  }
+});
+
+// ── NOTES ──
+const notesArea = document.getElementById('notes-area');
+
+notesArea.addEventListener('input', () => {
+  updateWordCount();
+  debouncedSave();
+});
+
+document.getElementById('notes-title').addEventListener('input', debouncedSave);
+
+let saveTimer;
+function debouncedSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveCurrentSession();
+    renderSessionsList();
+  }, 600);
+}
+
+function updateWordCount() {
+  const text = notesArea.value.trim();
+  const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+  const lines = text ? text.split('\n').length : 0;
+  document.getElementById('word-count').textContent = `${words} words · ${lines} lines`;
+}
+
+function updateMeta() {
+  const s = sessions.find(x => x.id === currentSessionId);
+  if (!s) return;
+  const d = new Date(s.created);
+  document.getElementById('notes-meta').textContent =
+    d.toLocaleDateString('en-IE', { weekday:'short', day:'numeric', month:'short' }) + ' ' +
+    d.toLocaleTimeString('en-IE', { hour:'2-digit', minute:'2-digit' });
+}
+
+function formatText(type) {
+  const ta = notesArea;
+  const start = ta.selectionStart, end = ta.selectionEnd;
+  const sel = ta.value.substring(start, end);
+  if (!sel) return;
+  const map = { bold: `**${sel}**`, italic: `_${sel}_` };
+  const replacement = map[type];
+  ta.setRangeText(replacement, start, end, 'select');
+  ta.focus();
+}
+
+function insertLine(prefix) {
+  const ta = notesArea;
+  const pos = ta.selectionStart;
+  const before = ta.value.substring(0, pos);
+  const after = ta.value.substring(pos);
+  const needsNewline = before.length > 0 && !before.endsWith('\n');
+  const insert = (needsNewline ? '\n' : '') + prefix;
+  ta.value = before + insert + after;
+  const newPos = pos + insert.length;
+  ta.setSelectionRange(newPos, newPos);
+  ta.focus();
+  updateWordCount();
+}
+
+function clearNotes() {
+  if (!notesArea.value.trim()) return;
+  if (confirm('Clear all notes for this session?')) {
+    notesArea.value = '';
+    updateWordCount();
+    saveCurrentSession();
+  }
+}
+
+// ── EXPORT ──
+document.getElementById('export-btn').addEventListener('click', exportSession);
+
+function exportSession() {
+  saveCurrentSession();
+  const s = sessions.find(x => x.id === currentSessionId);
+  if (!s) return;
+
+  const title = s.title || 'BoardNotes Export';
+  const date = new Date(s.created).toLocaleString('en-IE');
+  const text = `${title}\n${date}\n${'─'.repeat(40)}\n\n${s.notes || '(no notes)'}`;
+
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${title.replace(/\s+/g,'-')}.txt`;
+  a.click(); URL.revokeObjectURL(url);
+  showToast('Notes exported as .txt');
+}
+
+function copyNotes() {
+  const text = notesArea.value;
+  if (!text.trim()) { showToast('Nothing to copy'); return; }
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+}
+
+// ── DRAWER ──
+document.getElementById('sessions-btn').addEventListener('click', () => {
+  saveCurrentSession();
+  renderSessionsList();
+  document.getElementById('sessions-drawer').classList.add('open');
+  document.getElementById('scrim').classList.add('visible');
+});
+
+function closeDrawer() {
+  document.getElementById('sessions-drawer').classList.remove('open');
+  document.getElementById('scrim').classList.remove('visible');
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// auto-save on page hide
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') saveCurrentSession();
+});
+window.addEventListener('pagehide', saveCurrentSession);
+
+// keyboard shortcut: Cmd/Ctrl+S
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+    e.preventDefault();
+    saveCurrentSession();
+    showToast('Saved');
+  }
+});
 </script>
 </body>
 </html>
